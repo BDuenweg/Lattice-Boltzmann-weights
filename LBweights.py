@@ -14,16 +14,84 @@ import math
 import numpy as np
 from numpy import *
 
-def FindVelocities(SpacialDimension, SquaredVelocity):
-    
-    # Calculates a list of lattice velocity vectors
-    # whose squared length matches the input value
-    # SquaredVelocity
+def AnalyzeTensorDimension(CurrentTensorRank):
 
-    # The list to be returned at the end of the routine
+#
+# Recursive generation of lists that specify what types
+# of tensors of rank CurrentTensor are compatible
+# with cubic invariance and also fully symmetric under
+# index exchange.
+#
+# For rank 2, these are just multiples of the 2nd rank
+# unit tensor \delta_{ij}. Thus tensor dimension is two.
+# For rank 4, these are multiples of
+# \delta_{ijkl} and multiples of
+# (\delta_{ij} \delta_{kl} + perm.).
+# Thus tensor dimension is four.
+# For rank 6, we get another tensor
+# \delta_{ijklmn}, but also all possible
+# products of the lower-rank deltas.
+# Hence tensor dimension is three.
+# For each new (even) rank M we get another
+# \delta with M indexes, plus all possible
+# products of the lower-order delta tensors
+# So, for rank two we get [[2]]  (1d)
+# for rank four [ [4] , [2,2] ]  (2d)
+# for rank six [ [6], [4,2], [2,2,2]] (3d)
+# for rank eight [ [8], [6,2], [4,4], [4,2,2], [2,2,2,2] ]
+# (5d) and so on. The routine takes care of
+# that "and so on". This is most easily done in a
+# recursive fashion.
+#
+
+    if CurrentTensorRank < 2:
+        print "Error: Tensor rank too small"
+        exit(0)
+    if CurrentTensorRank % 2 == 1:
+        print "Error: Tensor rank uneven"
+        exit(0)
+
+    FirstEntry = CurrentTensorRank
+    FirstEntryList = []
+    FirstEntryList.append(FirstEntry)
+
+    ListOfPossibleTensors = []
+    ListOfPossibleTensors.append(FirstEntryList)
+
+    if FirstEntry == 2:
+        return 1, ListOfPossibleTensors
+
+    while FirstEntry > 2:
+        FirstEntry = FirstEntry - 2
+        FirstEntryList = []
+        FirstEntryList.append(FirstEntry)
+        Rest = CurrentTensorRank - FirstEntry
+        TensorDimension, ReducedListOfPossibleTensors = \
+            AnalyzeTensorDimension(Rest)
+        for i in range(0, TensorDimension):
+            ReducedListOfArrangements = ReducedListOfPossibleTensors[i]
+            if(ReducedListOfArrangements[0] <= FirstEntry):
+                ListOfArrangements = FirstEntryList \
+                    + ReducedListOfArrangements
+                ListOfPossibleTensors.append(ListOfArrangements)
+
+    TensorDimension = len(ListOfPossibleTensors)
+
+    return TensorDimension, ListOfPossibleTensors
+
+
+def FindVelocities(SpacialDimension, SquaredVelocity):
+
+#    
+# Calculates a list of lattice velocity vectors
+# whose squared length matches the input value
+# SquaredVelocity
+#
+
+# The list to be returned at the end of the routine
     ListOfVelocities = []
 
-    # number of lattice sites to be scanned
+# number of lattice sites to be scanned
     linear_lattice_size = 2 * SquaredVelocity + 1
     full_lattice_size = linear_lattice_size ** SpacialDimension
 
@@ -37,7 +105,7 @@ def FindVelocities(SpacialDimension, SquaredVelocity):
             shifted_coordinate = coordinate - SquaredVelocity
             temp_vector.append(shifted_coordinate)
             current_velocity_squared += shifted_coordinate ** 2
-        if(current_velocity_squared == SquaredVelocity):
+        if current_velocity_squared == SquaredVelocity:
             ListOfVelocities.append(temp_vector)
 
     return ListOfVelocities
@@ -51,10 +119,12 @@ def DoubleFactorial(number):
 
 
 def MakeRandomVector(SpacialDimension):
-    # Generate a random vector uniformly distributed
-    # on the unit sphere
+#
+# Generate a random vector uniformly distributed
+# on the unit sphere
+#
     my_sum = 2.
-    while (my_sum > 1.):
+    while my_sum > 1.:
         my_sum = 0.
         RandomVector = []
         for dim in range(0, SpacialDimension):
@@ -85,13 +155,15 @@ def LatticeSum(RandomVector, ListOfVelocities, TensorRank):
 
 
 def ContFrac(x):
-    # Calculates the continued-fraction expansion
-    # of the floating-point number x
-    # See https://en.wikipedia.org/wiki/Continued_fraction
-    # Here we assume that x is of order unity and positive!
-    # Very small contributions are truncated
-    # because they are believed to be a result
-    # of roundoff errors!
+#
+# Calculates the continued-fraction expansion
+# of the floating-point number x
+# See https://en.wikipedia.org/wiki/Continued_fraction
+# Here we assume that x is of order unity and positive!
+# Very small contributions are truncated
+# because they are believed to be a result
+# of roundoff errors!
+#
     TOL_ROUNDOFF = 1.e-9
     TOL_TRUNCATE = 1.e-6
     MAX_ITER = 10
@@ -104,7 +176,7 @@ def ContFrac(x):
     ListOfIntegers.append(IntegerContribution)
     Rest = x - float(IntegerContribution)
     NIter = 0
-    while (Rest > TOL_TRUNCATE and NIter < MAX_ITER):
+    while Rest > TOL_TRUNCATE and NIter < MAX_ITER :
         Inverse = 1. / Rest
         IntegerNumber = int(Inverse + TOL_ROUNDOFF)
         ListOfIntegers.append(IntegerNumber)
@@ -115,8 +187,10 @@ def ContFrac(x):
 
 
 def NumeratorOfConvergent(n, ListOfIntegers):
-    # calculates numerator of a fraction from a
-    # continued-fraction expansion
+#
+# calculates numerator of a fraction from a
+# continued-fraction expansion
+#
     if n == 0:
         return ListOfIntegers[0]
     if n == 1:
@@ -127,8 +201,10 @@ def NumeratorOfConvergent(n, ListOfIntegers):
 
 
 def DenominatorOfConvergent(n, ListOfIntegers):
-    # calculates denominator of a fraction from a
-    # continued-fraction expansion
+#
+# calculates denominator of a fraction from a
+# continued-fraction expansion
+#
     if n == 0:
         return 1
     if n == 1:
@@ -139,9 +215,11 @@ def DenominatorOfConvergent(n, ListOfIntegers):
 
 
 def RatApprox(x):
-    # Calculates numerator and denominator for a
-    # floating point number x
-    # and returns the output as a string
+#
+# Calculates numerator and denominator for a
+# floating point number x
+# and returns the output as a string
+#
     TOL = 1.e-7
     y = abs(x)
     if y < TOL:
@@ -193,10 +271,11 @@ def IndicatorFunction(W0List, SolutionMatrix, cs2):
 
 
 def FindRangeOfExistence(W0List, SolutionMatrix):
-    # make use of the function "roots"
-    # that needs the coefficients in
-    # reverse order
-    
+#
+# make use of the function "roots"
+# that needs the coefficients in
+# reverse order
+#
     TOL = 1.e-10
     TotalRoots = []
 
@@ -308,6 +387,7 @@ def OutputMagicNumbers(CompressedRoots, W0List, SolutionMatrix):
 
 
 def FillLeftHandSide(SpacialDimension, MaxTensorRank, \
+                         ListOfTensorDimensions, \
                          TotalNumberOfShells, GrandTotalList):
 
 # Fill the matrix of left-hand sides
@@ -316,8 +396,8 @@ def FillLeftHandSide(SpacialDimension, MaxTensorRank, \
 
 # k loop is loop over tensor ranks
     for k in range(0, MaxTensorRank / 2):
-        TensorRank = 2 * (k + 1)
-        LocalDimensionOfTensorSpace = TensorRank / 2
+        TensorRank = 2 * k + 2
+        LocalDimensionOfTensorSpace = ListOfTensorDimensions[k]
 # j loop is loop over random vectors
         for j in range (0, LocalDimensionOfTensorSpace):
             RandomVector = MakeRandomVector(SpacialDimension)
@@ -333,7 +413,7 @@ def FillLeftHandSide(SpacialDimension, MaxTensorRank, \
     return left_hand_side_matrix
 
 
-def FillRightHandSide(MaxTensorRank):
+def FillRightHandSide(MaxTensorRank, ListOfTensorDimensions):
 
 # Fill the matrix of right-hand sides
 
@@ -343,14 +423,14 @@ def FillRightHandSide(MaxTensorRank):
 
 # k loop is loop over tensor ranks
     for k in range(0, MaxTensorRank / 2):
-        TensorRank = 2 * (k + 1)
-        LocalDimensionOfTensorSpace = TensorRank / 2
+        TensorRank = 2 * k + 2
+        LocalDimensionOfTensorSpace = ListOfTensorDimensions[k]
 # j loop is loop over random vectors
         for j in range (0, LocalDimensionOfTensorSpace):
             RowList = []
 # i loop is loop over c_s powers
             for i in range(0, NumberOfColumns):
-                cs_power = 2 * (i + 1)
+                cs_power = 2 * i + 2
                 element = 0.
                 if cs_power == TensorRank:
                     element = 1.
@@ -388,9 +468,15 @@ print "Confirmation: maximum tensor rank = %d" % MaxTensorRank
 
 print " "
 
-# Please see the paper for an explanation of this.
+DimensionOfTensorSpace = 0
+ListOfTensorDimensions = []
 
-DimensionOfTensorSpace = ( MaxTensorRank * (MaxTensorRank + 2) ) / 8
+for k in range(0, MaxTensorRank/2):
+    CurrentTensorRank = 2 * k + 2
+    TensorDimension, ListOfPossibleTensors = \
+        AnalyzeTensorDimension(CurrentTensorRank)
+    ListOfTensorDimensions.append(TensorDimension)
+    DimensionOfTensorSpace += TensorDimension
 
 print "I expect that you need %d velocity shells" \
       % DimensionOfTensorSpace
@@ -463,7 +549,8 @@ print " "
 print "Now the analysis starts ..."
 
 left_hand_side_matrix = FillLeftHandSide(SpacialDimension, \
-                                             MaxTensorRank, \
+                                             MaxTensorRank,
+                                             ListOfTensorDimensions, \
                                              TotalNumberOfShells, \
                                              GrandTotalList)
 
@@ -527,7 +614,8 @@ print "This is nice, continuing the analyis..."
 # all zeros, except the inverse singular
 # values on the diagonal
 
-right_hand_side_matrix = FillRightHandSide(MaxTensorRank)
+right_hand_side_matrix = FillRightHandSide(MaxTensorRank, \
+                                               ListOfTensorDimensions)
 
 new_rhs = np.dot(np.transpose(U), right_hand_side_matrix)
 
