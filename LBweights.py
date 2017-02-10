@@ -530,6 +530,8 @@ random.seed(seed)
 
 # At this point, the input is done!
 
+print " "
+
 # First give the user the trivial facts about
 # the selected model
     
@@ -558,6 +560,9 @@ left_hand_side_matrix = FillLeftHandSide(SpacialDimension, \
 
 NumberOfRows = left_hand_side_matrix.shape[0]
 
+right_hand_side_matrix = FillRightHandSide(MaxTensorRank, \
+                                               ListOfTensorDimensions)
+
 # First do a singular-value decomposition (SVD)
 # of the left-hand side.
 # For background on SVD, see
@@ -578,46 +583,78 @@ U, s, V = np.linalg.svd(left_hand_side_matrix, full_matrices=True)
 # that contains the singular values on the diagonal
 # and is zero elsewhere
 
+# Move U to the right-hand side
+
+new_rhs = np.dot(np.transpose(U), right_hand_side_matrix)
+
 # Identify very small singular values with zero
-# and use this or checking the rank
+# and use this for checking the rank
 
 NumberOfSingularValues = s.size
 
+ListOfSingValTags = []
+
+ProductOfTags = 1
+
 TOL = 1.e-8
 for i in range(0, NumberOfSingularValues):
-    if s[i] < TOL:
-        print "Matrix is rank-deficient."
-        print "The problem has no unique solution."
-        print "This is undesired."
-        print "Aborting the procedure."
+    if s[i] > TOL:
+        Tag = 1
+    else:
+        Tag = 0
+    ListOfSingValTags.append(Tag)
+    ProductOfTags *= Tag
+
+if ProductOfTags == 0:
+    RankDeficiency = True
+else:
+    RankDeficiency = False
+
+
+# Define a projection operator Q that projects
+# onto the null space of SV
+
+ProjectorQ = np.zeros( (NumberOfRows, NumberOfRows) )
+
+for i in range(0, NumberOfRows):
+    if i < NumberOfSingularValues and ListOfSingValTags[i] == 1:
+        ProjectorQ[i,i] = 0.
+    else:
+        ProjectorQ[i,i] = 1.
+
+# Apply this to the rhs
+
+projected_rhs = np.dot(ProjectorQ, new_rhs)
+
+# The system has a solution if and only if this is just zero
+
+test_rhs = np.linalg.norm(projected_rhs)
+TOL = 1.e-6
+if test_rhs < TOL:
+    NoSolution = False
+else:
+    NoSolution = True
+
+# Eliminate all undesired cases
+
+if RankDeficiency:
+    print "This is a rank-deficient problem"
+    if NoSolution:
+        print "with no solution whatsoever"
+    else:
+        print "with infinitely many solutions."
+    print "Aborting."
+    exit(0)
+else:
+    print "Matrix has maximum rank"
+    if NoSolution:
+        print "but the system has no solution."
+        print "Aborting."
         exit(0)
+    else:
+        print "and the problem has one unique solution ..."
 
-print "Singular-value decomposition has revealed:"
-print "Left-hand side matrix has maximum rank."
-print "This is nice, continuing the analyis..."
-
-# The equation has the form
-# A x = b
-# We still do not know if the problem has
-# a solution. Therefore let us rather
-# consider the least-square problem
-# (A x - b)^T (A x - b) = Min.
-# which certainly does have a solution.
-# Minimization yields the condition
-# A^T A x = A^T b
-# As all singular values are positive,
-# we know that A^T A has only positive
-# eigenvalues, hence it is invertible.
-# Therefore x = (A^T A)^(-1) A^T b
-# or x = V^T (S^T S)^(-1) S^T U^T b
-# (S^T S)^(-1) S^T is a simple matrix -
-# all zeros, except the inverse singular
-# values on the diagonal
-
-right_hand_side_matrix = FillRightHandSide(MaxTensorRank, \
-                                               ListOfTensorDimensions)
-
-new_rhs = np.dot(np.transpose(U), right_hand_side_matrix)
+# Now calculate the unique solution
 
 ScaleMatrix = np.zeros( (TotalNumberOfShells, NumberOfRows) )
 
@@ -628,22 +665,7 @@ reduced_rhs = np.dot(ScaleMatrix, new_rhs)
     
 SolutionMatrix = np.dot(np.transpose(V), reduced_rhs)
 
-# This is the least square solution!
-# Let us see if it is the real solution!
-
-residual = dot(left_hand_side_matrix, SolutionMatrix) \
-           - right_hand_side_matrix
-difference = np.linalg.norm(residual)
-TOL = 1.e-6
-if difference > TOL:
-    print "Problem has no solution!"
-    print "Set of velocities apparently not suitable!"
-    print "Aborting."
-    exit(0)
-
-# Now we seem to have a decent solution!
-
-print "Unique solution of the problem is the matrix"
+print "... which is:"
 print SolutionMatrix
 
 print " "
