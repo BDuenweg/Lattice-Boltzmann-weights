@@ -480,8 +480,8 @@ for k in range(0, MaxTensorRank/2):
 
 print "I expect that you need %d velocity shells" \
       % DimensionOfTensorSpace
-print "plus the zero velocity shell, which we do need to"
-print "consider explicitly."
+print "plus the zero velocity shell,"
+print "which we do not need to consider explicitly."
 print "Perhaps, however, you can get away with less - just try!"
 
 print " "
