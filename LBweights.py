@@ -13,21 +13,23 @@ import random
 import math
 import numpy as np
 from numpy import *
+import fractions
+from fractions import Fraction
 
 def AnalyzeTensorDimension(CurrentTensorRank):
 
 #
 # Recursive generation of lists that specify what types
-# of tensors of rank CurrentTensor are compatible
+# of tensors of rank CurrentTensorRank are compatible
 # with cubic invariance and also fully symmetric under
 # index exchange.
 #
 # For rank 2, these are just multiples of the 2nd rank
-# unit tensor \delta_{ij}. Thus tensor dimension is two.
+# unit tensor \delta_{ij}. Thus tensor dimension is one.
 # For rank 4, these are multiples of
 # \delta_{ijkl} and multiples of
 # (\delta_{ij} \delta_{kl} + perm.).
-# Thus tensor dimension is four.
+# Thus tensor dimension is two.
 # For rank 6, we get another tensor
 # \delta_{ijklmn}, but also all possible
 # products of the lower-rank deltas.
@@ -154,64 +156,59 @@ def LatticeSum(RandomVector, ListOfVelocities, TensorRank):
     return my_sum
 
 
-def ContFrac(x):
-#
-# Calculates the continued-fraction expansion
-# of the floating-point number x
-# See https://en.wikipedia.org/wiki/Continued_fraction
-# Here we assume that x is of order unity and positive!
-# Very small contributions are truncated
-# because they are believed to be a result
-# of roundoff errors!
-#
-    TOL_ROUNDOFF = 1.e-9
-    TOL_TRUNCATE = 1.e-6
-    MAX_ITER = 10
-    ListOfIntegers = []
-    if x <= 0.:
-        print "Error in the continued-fraction expansion!"
-        print "Please supply a positive number!"
-        exit(0)
-    IntegerContribution = int(x + TOL_ROUNDOFF)
-    ListOfIntegers.append(IntegerContribution)
-    Rest = x - float(IntegerContribution)
-    NIter = 0
-    while Rest > TOL_TRUNCATE and NIter < MAX_ITER :
-        Inverse = 1. / Rest
-        IntegerNumber = int(Inverse + TOL_ROUNDOFF)
-        ListOfIntegers.append(IntegerNumber)
-        Rest = Inverse - float(IntegerNumber)
-        NIter += 1
-        
-    return ListOfIntegers
+def FillLeftHandSide(SpacialDimension, MaxTensorRank, \
+                         ListOfTensorDimensions, \
+                         TotalNumberOfShells, GrandTotalList):
+
+# Fill the matrix of left-hand sides
+
+    left_hand_side_list = []
+
+# k loop is loop over tensor ranks
+    for k in range(0, MaxTensorRank / 2):
+        TensorRank = 2 * k + 2
+        LocalDimensionOfTensorSpace = ListOfTensorDimensions[k]
+# j loop is loop over random vectors
+        for j in range (0, LocalDimensionOfTensorSpace):
+            RandomVector = MakeRandomVector(SpacialDimension)
+            RowList = []
+# i loop is loop over velocity shells
+            for i in range(0, TotalNumberOfShells):
+                ListOfVelocities = GrandTotalList[i]
+                ShellSum = LatticeSum(RandomVector,ListOfVelocities,TensorRank)
+                RowList.append(ShellSum)
+            left_hand_side_list.append(RowList)
+
+    left_hand_side_matrix = np.array(left_hand_side_list)
+    return left_hand_side_matrix
 
 
-def NumeratorOfConvergent(n, ListOfIntegers):
-#
-# calculates numerator of a fraction from a
-# continued-fraction expansion
-#
-    if n == 0:
-        return ListOfIntegers[0]
-    if n == 1:
-        return ListOfIntegers[0] * ListOfIntegers[1] + 1
-    return ListOfIntegers[n] \
-           * NumeratorOfConvergent(n - 1, ListOfIntegers) \
-           + NumeratorOfConvergent(n - 2, ListOfIntegers)
+def FillRightHandSide(MaxTensorRank, ListOfTensorDimensions):
 
+# Fill the matrix of right-hand sides
 
-def DenominatorOfConvergent(n, ListOfIntegers):
-#
-# calculates denominator of a fraction from a
-# continued-fraction expansion
-#
-    if n == 0:
-        return 1
-    if n == 1:
-        return ListOfIntegers[1]
-    return ListOfIntegers[n] \
-           * DenominatorOfConvergent(n - 1, ListOfIntegers) \
-           + DenominatorOfConvergent(n - 2, ListOfIntegers)
+    right_hand_side_list = []
+
+    NumberOfColumns = MaxTensorRank / 2
+
+# k loop is loop over tensor ranks
+    for k in range(0, MaxTensorRank / 2):
+        TensorRank = 2 * k + 2
+        LocalDimensionOfTensorSpace = ListOfTensorDimensions[k]
+# j loop is loop over random vectors
+        for j in range (0, LocalDimensionOfTensorSpace):
+            RowList = []
+# i loop is loop over c_s powers
+            for i in range(0, NumberOfColumns):
+                cs_power = 2 * i + 2
+                element = 0.
+                if cs_power == TensorRank:
+                    element = 1.
+                RowList.append(element)
+            right_hand_side_list.append(RowList)
+
+    right_hand_side_matrix = np.array(right_hand_side_list)
+    return right_hand_side_matrix
 
 
 def RatApprox(x):
@@ -220,27 +217,20 @@ def RatApprox(x):
 # floating point number x
 # and returns the output as a string
 #
-    TOL = 1.e-7
-    y = abs(x)
-    if y < TOL:
-        return "0"
-    sign = 1
-    if x < 0.:
-        sign = -1
-    ListOfIntegers = ContFrac(y)
-    DepthOfExpansion = len(ListOfIntegers) - 1
-    Numerator = \
-        NumeratorOfConvergent(DepthOfExpansion, ListOfIntegers)    
-    Denominator = \
-        DenominatorOfConvergent(DepthOfExpansion, ListOfIntegers)    
-    Numerator *= sign
-    NumeratorString = str(Numerator)
-    if Denominator == 1:
-        return NumeratorString
-    DenominatorString = str(Denominator)
-    TotalString = NumeratorString+"/"+DenominatorString
 
-    return TotalString
+    TOL = 1.e-12
+    if abs(x) < TOL:
+        return "0"
+
+    if (abs(x) >= 0.1):
+        LimitDenominator = 1000000
+    else:
+        LimitDenominator = int(1. / abs(x)) * 1000000
+        
+    MyFraction = Fraction(x).limit_denominator(LimitDenominator)
+    MyFraction = str(MyFraction)
+
+    return MyFraction
 
 
 def EvaluateWeights(W0List, SolutionMatrix, cs2):
@@ -363,7 +353,7 @@ def OutputRangeOfExistence(CompressedRoots):
 def OutputMagicNumbers(CompressedRoots, W0List, SolutionMatrix):
     my_range = len(CompressedRoots)
 
-    if len == 0:
+    if my_range == 0:
         return
 
     print "The limits of validity are:"
@@ -384,62 +374,6 @@ def OutputMagicNumbers(CompressedRoots, W0List, SolutionMatrix):
             print "w[%d] = %e =(possibly) %s" % (j, my_weight, String)
 
     return
-
-
-def FillLeftHandSide(SpacialDimension, MaxTensorRank, \
-                         ListOfTensorDimensions, \
-                         TotalNumberOfShells, GrandTotalList):
-
-# Fill the matrix of left-hand sides
-
-    left_hand_side_list = []
-
-# k loop is loop over tensor ranks
-    for k in range(0, MaxTensorRank / 2):
-        TensorRank = 2 * k + 2
-        LocalDimensionOfTensorSpace = ListOfTensorDimensions[k]
-# j loop is loop over random vectors
-        for j in range (0, LocalDimensionOfTensorSpace):
-            RandomVector = MakeRandomVector(SpacialDimension)
-            RowList = []
-# i loop is loop over velocity shells
-            for i in range(0, TotalNumberOfShells):
-                ListOfVelocities = GrandTotalList[i]
-                ShellSum = LatticeSum(RandomVector,ListOfVelocities,TensorRank)
-                RowList.append(ShellSum)
-            left_hand_side_list.append(RowList)
-
-    left_hand_side_matrix = np.array(left_hand_side_list)
-    return left_hand_side_matrix
-
-
-def FillRightHandSide(MaxTensorRank, ListOfTensorDimensions):
-
-# Fill the matrix of right-hand sides
-
-    right_hand_side_list = []
-
-    NumberOfColumns = MaxTensorRank / 2
-
-# k loop is loop over tensor ranks
-    for k in range(0, MaxTensorRank / 2):
-        TensorRank = 2 * k + 2
-        LocalDimensionOfTensorSpace = ListOfTensorDimensions[k]
-# j loop is loop over random vectors
-        for j in range (0, LocalDimensionOfTensorSpace):
-            RowList = []
-# i loop is loop over c_s powers
-            for i in range(0, NumberOfColumns):
-                cs_power = 2 * i + 2
-                element = 0.
-                if cs_power == TensorRank:
-                    element = 1.
-                RowList.append(element)
-            right_hand_side_list.append(RowList)
-
-    right_hand_side_matrix = np.array(right_hand_side_list)
-    return right_hand_side_matrix
-
 
 
 # BEGINNING OF MAIN PROGRAM
@@ -500,7 +434,7 @@ print "with squared velocities", ShellList
 
 if TotalNumberOfShells > DimensionOfTensorSpace:
     print "These are too many shells!"
-    print "This would results in a singular problem!"
+    print "This would result in a singular problem!"
     print "Aborting the procedure."
     exit(0)
     
@@ -514,7 +448,7 @@ for i in range(0, TotalNumberOfShells):
     ListOfVelocities = FindVelocities(SpacialDimension, SquaredVelocity)
     NumberOfVelocities = len(ListOfVelocities)
     if NumberOfVelocities == 0:
-        print "The shell with squared velocity = %d is empty" \
+        print "The shell with squared velocity = %d is empty." \
             % SquaredVelocity
         print "I assume that is not intended. Therefore I abort."
         exit(0)
