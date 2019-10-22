@@ -35,7 +35,7 @@ subshells that you want to discard."""
 shall live. Please note that the model will live on a simple cubic lattice.""")
 
     if Arguments['d'] is None:
-        SpacialDimension = int(raw_input("Spacial dimension = ? "))
+        SpacialDimension = int(input("Spacial dimension = ? "))
     else:
         SpacialDimension = Arguments['d']
 
@@ -47,7 +47,7 @@ Maxwell-Boltzmann constraints (for example, 2nd rank, 4th rank, etc.). Please
 note that this should be an even number.""") 
 
     if Arguments['m'] is None:
-        MaxTensorRank = int(raw_input("Maximum tensor rank = ? "))
+        MaxTensorRank = int(input("Maximum tensor rank = ? "))
     else:
         MaxTensorRank = Arguments['m']
 
@@ -57,7 +57,7 @@ note that this should be an even number.""")
     DimensionOfTensorSpace = 0
     ListOfTensorDimensions = []
 
-    for k in range(MaxTensorRank / 2):
+    for k in range(int(MaxTensorRank / 2)):
         CurrentTensorRank = 2 * k + 2
         TensorDimension, ListOfPossibleTensors = \
             AnalyzeTensorDimension(CurrentTensorRank)
@@ -73,9 +73,9 @@ get away with less - just try!""" % DimensionOfTensorSpace)
         EchoError("""Please give me the squared lengths of the velocity shells
 that you wish to analyze (excluding the zero velocity shell) in the simple
 format: 1 2 3 4 5 """)
-        ShellString = raw_input()
+        ShellString = input()
         ShellList = ShellString.split()
-        ShellList = map(int, ShellList)
+        ShellList = [int(x) for x in ShellList]
     else:
         ShellList = Arguments['c']
 
@@ -119,7 +119,7 @@ assume that is not intended. Therefore I abort.""" % SquaredVelocity)
                  NumberOfSubshells))
 
             for i_subs, Subshell in enumerate(ListOfSubshells):
-                Type = tuple(np.sort(map(abs, Subshell[0])))
+                Type = tuple(np.sort([abs(x) for x in Subshell[0]]))
                 EchoError("  Subshell %d containing %2d velocities of type %s" \
                     % (i_subs, len(Subshell), Type))
 
@@ -129,7 +129,7 @@ wish to EXCLUDE from the analysis in the established format: 1 2 3.  Press
 return to keep all subshells.""")
 
             if ListOfThrowawayStrings is None:
-                ThrowawayString = raw_input()
+                ThrowawayString = input()
             else:
                 ThrowawayString = ListOfThrowawayStrings[i_shell]
 
@@ -140,7 +140,7 @@ return to keep all subshells.""")
             # Remove selected
             else:
                 ThrowawayList = ThrowawayString.split()
-                ThrowawayList = map(int, ThrowawayList)
+                ThrowawayList = [int(x) for x in ThrowawayList]
                 ThrowawaySet = set(ThrowawayList)
 
                 for j in range(NumberOfSubshells):
@@ -167,7 +167,7 @@ velocities in %d shells (including c_i^2 = 0 shell).""" \
     Echo("The non-trivial shells are:")
     for NumberOfShell, Shell in enumerate(GrandTotalList):
         NumberOfVelocities = len(Shell)
-        Type = tuple(np.sort(map(abs, Shell[0])))
+        Type = tuple(np.sort([abs(x) for x in Shell[0]]))
 
         Echo("  Shell number %d with c_i^2 = %2d and %2d velocities of type %s" \
             % (NumberOfShell + 1, AbsSquared(Shell[0]), NumberOfVelocities, Type))
@@ -177,7 +177,7 @@ velocities in %d shells (including c_i^2 = 0 shell).""" \
     if Arguments['s'] is None:
         EchoError("""The procedure is based upon random vectors, therefore
 please give me a start value for the random number generator""", LINEWIDTH)
-        seed = int(raw_input("Random number seed = ? "))
+        seed = int(input("Random number seed = ? "))
     else:
         seed = Arguments['s']
 
@@ -325,7 +325,7 @@ script 'Continue.py'.""")
 
     # Some post-processing I:
     # Coefficients for the zero velocity shell
-    NumberOfColumns = MaxTensorRank / 2
+    NumberOfColumns = int(MaxTensorRank / 2)
 
     W0List = [1.]
     for j in range(NumberOfColumns):
