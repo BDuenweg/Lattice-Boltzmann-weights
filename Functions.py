@@ -1,4 +1,4 @@
-from __future__ import print_function # TODO
+from __future__ import print_function
 import random
 import math
 import os
@@ -35,8 +35,7 @@ weights of an LB model.\nYou can either supply the input data interactively or
 by the following command line arguments:""")
 
     parser.add_argument(
-        "-d",
-        type=int,
+        "-d", type=int,
         help="spacial dimension of the lattice")
 
     parser.add_argument("-m", type=int, help="Maximum tensor rank")
@@ -49,20 +48,27 @@ by the following command line arguments:""")
     parser.add_argument("-s", type=int, help="Randon number generator seed")
 
     parser.add_argument(
-        "-y",
-        action='store_true',
+        "-y", action='store_true',
         help="Answer all prompts with yes (may overwrite file data.npz)")
 
     parser.add_argument(
-        "--test", action='store_true',
+        "--test-poly", action='store_true',
         help="Test wether a given set of weights is a solution. Weights "
-        "must be given as polynomials in the speed of sound.")
+        "must be given interactively as polynomials in the speed of sound.")
+
+    parser.add_argument(
+        "--test", nargs='*', type=float,
+        help="Test wether a given set of weights together with a speed of "
+        "sound is a solution. The solution can be supplied interactively if "
+        "no argument is given, or as argument in the form: c_s^2 w0 w1 ...")
 
     parser.add_argument(
         "--quiet", action='store_true', help="Turn off most of the output")
 
     parser.add_argument(
-        "--write_latex", action='store_true', help="Write unique solution to the file \"latex_tables.dat\" in form of a latex table. This will append to any existing file.")
+        "--write-latex", action='store_true', 
+        help="Write unique solution to the file \"latex_tables.dat\" in form "
+        "of a latex table. This will append to any existing file.")
 
     # if no arguments are given, print help text
     if len(sys.argv) == 1:
@@ -471,20 +477,39 @@ def Frexp10(Float):
 
 
 def Type(Shell):
+    """returns typical velocity vector for Shell"""
     return tuple(np.sort(list(map(abs, Shell[0]))))
 
+def WriteLatexNumber(Value, Outfile, Precision = 8, Rational = False):
+    """Write Value to Outfile in a Latex compatible way"""
+    if Rational:
+        Outfile.write("$%10s$" % RatApprox(Value)) 
 
-def WriteLatexTable(CompressedRoots, W0List, SolutionMatrix, GrandTotalList,
-        MaxTensorRank, Precision = 8):
-    """Write unique solution to a file in form of a """
-    """latex table. This will append to any existing file."""
+    else:
+        if(abs(Value) < 10**(-14)):
+            Outfile.write("$0$" + (Precision + 18) * " ") 
 
-    Filename = "latex_tables.tex"
+        else:
+            Mantissa, Exponent = Frexp10(Value)
+            if(Exponent == 0):
+                Outfile.write("$%*.*f$               " % (Precision + 4,
+                    Precision, Value))
+            else:
+                Outfile.write("$%*.*f \\times 10^{%d}$" % (Precision + 4, Precision,
+                    Mantissa, Exponent))
+
+
+def WriteLatexTables(CompressedRoots, W0List, SolutionMatrix, GrandTotalList,
+        MaxTensorRank, Precision = 8, Rational = False, 
+        Filename="latex_tables.tex"):
+    """Write unique solution to a file in form of a latex table. This will
+    append to any existing file.
+    """
 
     if os.path.isfile(Filename):
         if not "-y" in sys.argv:
             if not YesNo("Latex table will be appended to the file "+Filename+
-                ". Is this OK [Yn]"):
+                ". Is this OK? [Yn]"):
                 return
 
     with open(Filename, "a") as Outfile:
@@ -500,6 +525,8 @@ def WriteLatexTable(CompressedRoots, W0List, SolutionMatrix, GrandTotalList,
         if MyRange == 0:
             return
 
+        Outfile.write("\\documentclass{article}\n")
+        Outfile.write("\\begin{document}\n")
         Outfile.write("\\begin{table}\n")
         Outfile.write("  \\begin{tabular}{| c | c |")
 
@@ -510,18 +537,19 @@ def WriteLatexTable(CompressedRoots, W0List, SolutionMatrix, GrandTotalList,
         Outfile.write("    \\hline\n")
         Outfile.write("    shell & typical")
         for i in range(MyRange):
-            Outfile.write(" & weight at ")
+            Outfile.write(" & weight at $c_\\mathrm{s}^2 = $")
 
         Outfile.write("\\\\\n")
         Outfile.write("    size  & vector  ")
 
+        # print c_s^2 at interval boundary
         for CsSquared in CompressedRoots:
             Mantissa, Exponent = Frexp10(CsSquared)
 
-            if(abs(CsSquared) < 10**(-(Precision + 2))):
-                Outfile.write("& $\cs^2 = 0$ ")
-            else:
-                Outfile.write("& $\cs^2 = %.*f \\times 10^{%d}$ " % (Precision, Mantissa, Exponent))
+            Value = CsSquared
+            Outfile.write("& ")
+            WriteLatexNumber(Value, Outfile, Precision, Rational)
+            Outfile.write(" ")
 
         Outfile.write("\\\\\n")
         Outfile.write("    \hline\n")
@@ -544,16 +572,10 @@ def WriteLatexTable(CompressedRoots, W0List, SolutionMatrix, GrandTotalList,
 
             # write weights at interval edges
             for i_cs in range(MyRange):
-                Weight = WeightLists[i_cs][i_shell]
-                Mantissa, Exponent = Frexp10(Weight)
-
-                if(abs(Weight) < 10**(-(Precision + 2))):
-                    Outfile.write("& $0$                 ")
-                    for i in range(Precision):
-                      Outfile.write(" ")
-
-                else:
-                    Outfile.write("& $%.*f \\times 10^{%d}$ " % (Precision, Mantissa, Exponent))
+                Value = WeightLists[i_cs][i_shell]
+                Outfile.write("& ")
+                WriteLatexNumber(Value, Outfile, Precision, Rational)
+                Outfile.write(" ")
 
 
             Outfile.write("\\\\")
@@ -562,14 +584,83 @@ def WriteLatexTable(CompressedRoots, W0List, SolutionMatrix, GrandTotalList,
         Outfile.write("    \hline\n")
         Outfile.write("  \\end{tabular}\n")
         Outfile.write("  \\caption{Properties of a %d--speed model in %d dimensions that is isotropic up to tensor rank %d.}\n" % (TotalNumberOfVelocities, SpacialDimension, MaxTensorRank))
-        Outfile.write("  \\label{tab:d%dm%dv%d}\n" % (SpacialDimension,
+        Outfile.write("  \\label{tab:weights_d%dm%dv%d}\n" % (SpacialDimension,
             MaxTensorRank, TotalNumberOfVelocities))
         Outfile.write("\\end{table}\n")
         Outfile.write("\n")
+
+        # Write Coefficients
+        (Rows, Columns) = SolutionMatrix.shape
+        ZerothColumn  = np.eye(Rows + 1, 1)
+
+        Outfile.write("\\begin{table}\n")
+        Outfile.write("  \\begin{tabular}{| c | c |")
+        for i_col in range(Columns + 1):
+            Outfile.write(" c |")
+            
+        Outfile.write("}")
+        Outfile.write("\\\\\n")
+
+        Outfile.write("    \\hline\n")
+
+        Outfile.write("    shell & typical  ")
+        for i_col in range(Columns + 1):
+            Outfile.write("& coefficient of    ")
+
+        Outfile.write("\\\\\n")
+
+        Outfile.write("    size  & vector  ")
+        for i_col in range(Columns + 1):
+            Outfile.write(" & $c_\mathrm{s}^%d$ " % (2*i_col))
+
+        Outfile.write("\\\\\n")
+        Outfile.write("    \\hline\n")
+
+        for i_shell in range(len(GrandTotalList)):
+            Shell = GrandTotalList[i_shell]
+            # write number of velocities in shell
+            Outfile.write("    %3d & (" % len(Shell))
+
+            # write type of shell
+            for i_type in range(SpacialDimension):
+                if i_type < SpacialDimension - 1:
+                    Outfile.write("%d, " % Type(Shell)[i_type])
+                else:
+                    Outfile.write("%d) " % Type(Shell)[i_type])
+
+            # write zeroth shell
+            if i_shell == 0:
+                Outfile.write("& 1 ")
+                for i_col in range(Columns):
+                    Value = W0List[i_col + 1]
+                    Outfile.write("& ")
+                    WriteLatexNumber(Value, Outfile, Precision, Rational)
+                    Outfile.write(" ")
+            # write remaining shells
+            else:
+                # write zeroth coefficient
+                Outfile.write("& 0 " % ZerothColumn[i_shell])
+                # write othoer coefficients
+                for i_col in range(Columns):
+                    Value = SolutionMatrix[i_shell - 1][i_col]
+                    Outfile.write("& ")
+                    WriteLatexNumber(Value, Outfile, Precision, Rational)
+                    Outfile.write(" ")
+
+            Outfile.write("\\\\\n")
+
+        Outfile.write("    \hline\n")
+        Outfile.write("  \\end{tabular}\n")
+        Outfile.write("  \\caption{Coefficients of a %d--speed model in %d dimensions that is isotropic up to tensor rank %d.}\n" % (TotalNumberOfVelocities, SpacialDimension, MaxTensorRank))
+        Outfile.write("  \\label{tab:coefficients_d%dm%dv%d}\n" %
+                (SpacialDimension, MaxTensorRank, TotalNumberOfVelocities))
+        Outfile.write("\\end{table}\n")
+        Outfile.write("\\end{document}\n")
         return
 
 
 def EnterSolution(TotalNumberOfShells, MaxTensorRank):
+    """Enter solution as polynomials in the speed of sound"""
     SolutionMatrix = np.zeros((TotalNumberOfShells, MaxTensorRank // 2))
 
     for i_shell in range(TotalNumberOfShells):
@@ -582,8 +673,89 @@ def EnterSolution(TotalNumberOfShells, MaxTensorRank):
 
     return SolutionMatrix
 
-# Subshell analysis
 
+def TestSolutionPoly(TotalNumberOfShells, MaxTensorRank, LeftHandSideMatrix, 
+        RightHandSideMatrix, SolutionMatrix):
+    """Test solution that is given as polynomials in the speed of sound"""
+    EchoError("""Please enter the solution that you want to check as
+polynomials c_s^2. You should at least give nine decimal places.""")
+    Echo('\n')
+    SolutionMatrix = EnterSolution(TotalNumberOfShells, MaxTensorRank)
+    if np.allclose(LeftHandSideMatrix.dot(SolutionMatrix),
+                   RightHandSideMatrix):
+        Echo("The given solution solves the system.")
+        return 0
+    else: 
+        Echo("The given solution does NOT solve the system.")
+        Echo(LeftHandSideMatrix.dot(SolutionMatrix))
+        Echo(RightHandSideMatrix)
+        return 1
+
+
+def TestSolution(GrandTotalList, MaxTensorRank, SpacialDimension,
+        ListOfTensorDimensions, Solution=[], atol=1e-8, rtol=1e-5):
+    """Test validity of the equation A.w = b for given weights w and speed of
+    sound c_s^2
+    """
+    ShellSizes = np.array([len(Shell) for Shell in GrandTotalList])
+    TotalNumberOfShells = len(GrandTotalList)
+
+    LeftHandSideMatrix = FillLeftHandSide(
+        SpacialDimension, MaxTensorRank, ListOfTensorDimensions,
+        TotalNumberOfShells, GrandTotalList)
+
+
+    if len(Solution) == 0:
+        EchoError("""Please enter the solution that you want to check.""")
+        Echo('\n')
+        # read c_s^2
+        CsSquared = float(input("  c_s^2 = "))
+
+        # read W
+        W = np.zeros(TotalNumberOfShells + 1)
+        for i_shell in range(TotalNumberOfShells + 1):
+            W[i_shell] = float(input("Please enter the weight for shell %d: " % (i_shell)))
+    else:
+        assert(len(Solution) == TotalNumberOfShells + 2)
+        CsSquared = Solution[0]
+        W = Solution[1:]
+
+    # set A
+    n_row = LeftHandSideMatrix.shape[0]
+    n_col = LeftHandSideMatrix.shape[1]
+
+    # pad A so that normalization condition for the weights is included
+    A = np.zeros((n_row + 1, n_col + 1))
+    A[0,0] = 1
+    A[0,1:] = ShellSizes
+    A[1:,1:] = LeftHandSideMatrix
+
+    # set B
+    B = [1.]
+    for k in range(MaxTensorRank // 2):
+        # TensorRank = 2 * k + 2
+        LocalDimensionOfTensorSpace = ListOfTensorDimensions[k]
+
+        # j loop is loop over random vectors
+        for j in range(LocalDimensionOfTensorSpace):
+            B.append(CsSquared**(k+1))
+
+    B = np.array(B)
+
+    # compare
+    if np.allclose(B, A.dot(W), atol=atol, rtol=rtol):
+        Echo("The given solution solves the system.")
+        Echo('A.w - b = ')
+        print(A.dot(W) - B)
+        return 0
+    else: 
+        Echo("The given solution does NOT solve the system.")
+        Echo('A.w - b = ')
+        iprint(A.dot(W) - B)
+        return 1
+
+
+# Subshell analysis
 def ToMatrix(Array):
     """Convert an array of unit vectors to proper matrix."""
     Dim = len(Array)

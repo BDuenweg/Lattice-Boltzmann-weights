@@ -1,5 +1,3 @@
-#!/usr/bin/python2.7
-
 import sys
 import random
 import numpy as np
@@ -57,7 +55,7 @@ note that this should be an even number.""")
     DimensionOfTensorSpace = 0
     ListOfTensorDimensions = []
 
-    for k in range(int(MaxTensorRank / 2)):
+    for k in range(MaxTensorRank // 2):
         CurrentTensorRank = 2 * k + 2
         TensorDimension, ListOfPossibleTensors = \
             AnalyzeTensorDimension(CurrentTensorRank)
@@ -70,12 +68,12 @@ get away with less - just try!""" % DimensionOfTensorSpace)
     Echo('\n')
 
     if Arguments['c'] is None:
-        EchoError("""Please give me the squared lengths of the velocity shells
+        Echo("""Please give me the squared lengths of the velocity shells
 that you wish to analyze (excluding the zero velocity shell) in the simple
 format: 1 2 3 4 5 """)
         ShellString = input()
         ShellList = ShellString.split()
-        ShellList = [int(x) for x in ShellList]
+        ShellList = list(map(int, ShellList))
     else:
         ShellList = Arguments['c']
 
@@ -114,40 +112,39 @@ assume that is not intended. Therefore I abort.""" % SquaredVelocity)
         NumberOfVelocities = 0
 
         if NumberOfSubshells > 1:
-            EchoError("Shell %d with c_i^2 = %d consists of %d subshells:" % \
+            Echo("Shell %d with c_i^2 = %d consists of %d subshells:" % \
                 (i_shell + 1, AbsSquared(ListOfVelocities[0]),
                  NumberOfSubshells))
 
             for i_subs, Subshell in enumerate(ListOfSubshells):
-                Type = tuple(np.sort([abs(x) for x in Subshell[0]]))
-                EchoError("  Subshell %d containing %2d velocities of type %s" \
-                    % (i_subs, len(Subshell), Type))
+                Echo("  Subshell %d containing %2d velocities of type %s" \
+                    % (i_subs, len(Subshell), Type(Subshell)))
 
-            Echo('\n')
-            EchoError("""Please give me the numbers of those subshells, that you
-wish to EXCLUDE from the analysis in the established format: 1 2 3.  Press
-return to keep all subshells.""")
 
             if ListOfThrowawayStrings is None:
+                EchoError("""Please give me the numbers of those subshells,
+that you wish to EXCLUDE from the analysis in the established format: 1 2 3.
+Press return to keep all subshells.""")
                 ThrowawayString = input()
             else:
                 ThrowawayString = ListOfThrowawayStrings[i_shell]
 
             # Keep all
             if ThrowawayString == '':
+                Echo('  Keeping all subshells\n')
                 NumberOfVelocities = len(ListOfVelocities)
                 ListOfUsedSubshells = ListOfSubshells
             # Remove selected
             else:
+                Echo('  Discarding subshells with indices %s\n' % ThrowawayString)
                 ThrowawayList = ThrowawayString.split()
-                ThrowawayList = [int(x) for x in ThrowawayList]
+                ThrowawayList = list(map(int, ThrowawayList))
                 ThrowawaySet = set(ThrowawayList)
 
                 for j in range(NumberOfSubshells):
                     if j not in ThrowawaySet:
                         ListOfUsedSubshells.append(ListOfSubshells[j])
                         NumberOfVelocities += len(ListOfSubshells[j])
-
         else:
             Echo("Shell %d with c_i^2 = %d is irreducible." 
                     % (i_shell + 1, AbsSquared(ListOfVelocities[0])))
@@ -167,10 +164,9 @@ velocities in %d shells (including c_i^2 = 0 shell).""" \
     Echo("The non-trivial shells are:")
     for NumberOfShell, Shell in enumerate(GrandTotalList):
         NumberOfVelocities = len(Shell)
-        Type = tuple(np.sort([abs(x) for x in Shell[0]]))
-
         Echo("  Shell number %d with c_i^2 = %2d and %2d velocities of type %s" \
-            % (NumberOfShell + 1, AbsSquared(Shell[0]), NumberOfVelocities, Type))
+            % (NumberOfShell + 1, AbsSquared(Shell[0]), NumberOfVelocities, 
+                Type(Shell)))
 
     Echo('\n')
 
@@ -194,32 +190,24 @@ def Analysis(SpacialDimension, MaxTensorRank, ListOfTensorDimensions,
         GrandTotalList, Arguments):
     Echo("Now the analysis starts ...")
     TotalNumberOfShells = len(GrandTotalList)
+    ShellSizes = np.array([len(Shell) for Shell in GrandTotalList])
 
     LeftHandSideMatrix = FillLeftHandSide(
         SpacialDimension, MaxTensorRank, ListOfTensorDimensions,
         TotalNumberOfShells, GrandTotalList)
 
     # Keep in mind: This is a (NumberOfRows x TotalNumberOfShells) matrix
-    NumberOfRows = LeftHandSideMatrix.shape[0]
 
     RightHandSideMatrix = FillRightHandSide(
         MaxTensorRank, ListOfTensorDimensions)
 
     # Test given solution
-    if Arguments['test']:
-        EchoError("""Please enter the solution that you want to check as
-polynomials c_s^2. You should at least give nine decimal places.""")
-        Echo('\n')
-        SolutionMatrix = EnterSolution(TotalNumberOfShells, MaxTensorRank)
-        if np.allclose(LeftHandSideMatrix.dot(SolutionMatrix),
-                       RightHandSideMatrix):
-            Echo("The given solution solves the system.")
-            return 0
-        else: 
-            EchoError("The given solution does NOT solve the system.")
-            EchoError(LeftHandSideMatrix.dot(SolutionMatrix))
-            EchoError(RightHandSideMatrix)
-            return 1
+    if Arguments['test'] is not None:
+        return TestSolution(GrandTotalList, MaxTensorRank,
+                SpacialDimension, ListOfTensorDimensions, Arguments['test'])
+    if Arguments['test_poly']:
+        return TestSolutionPoly(TotalNumberOfShells, MaxTensorRank,
+                LeftHandSideMatrix, RightHandSideMatrix, SolutionMatrix)
 
     # First do a singular-value decomposition (SVD)
     # of the left-hand side.
@@ -235,8 +223,6 @@ polynomials c_s^2. You should at least give nine decimal places.""")
     MatrixShape = LeftHandSideMatrix.shape
     Rows = MatrixShape[0]
     Columns = MatrixShape[1]
-
-    NumberOfSingularValues = s.size
 
     # Identify very small singular values with zero
     TOL = 1.e-8
@@ -276,7 +262,6 @@ polynomials c_s^2. You should at least give nine decimal places.""")
 I shall remove for you now.""" % AdditionalLines)
             Echo('\n')
             Rows = Rank
-            NumberOfSingularValues = Rank
             s.resize(Rows)
             NewRhs.resize((Rows,NewRhs.shape[1]))
 
@@ -299,13 +284,8 @@ exists it will be overwritten.\n""" % (Columns, Rows))
         if Arguments['y'] or YesNo("Is this OK? [Yn]"):
 
             # file output
-            ShellSizes = np.array([len(Shell) for Shell in GrandTotalList])
-            np.savez("data.npz",
-                     V = V,
-                     ReducedRhs = ReducedRhs,
-                     NumberOfRows = Rows,
-                     ShellSizes = ShellSizes)
-
+            np.savez("data.npz", V=V, ReducedRhs=ReducedRhs, 
+                    NumberOfRows=Rows, ShellSizes=ShellSizes) 
             Echo('\n')
             Echo("""Data has been stored. It can be processed by the secondary
 script 'Continue.py'.""")
@@ -325,7 +305,7 @@ script 'Continue.py'.""")
 
     # Some post-processing I:
     # Coefficients for the zero velocity shell
-    NumberOfColumns = int(MaxTensorRank / 2)
+    NumberOfColumns = MaxTensorRank // 2
 
     W0List = [1.]
     for j in range(NumberOfColumns):
@@ -373,9 +353,10 @@ script 'Continue.py'.""")
     CompressedRoots = FindRangeOfExistence(W0List, SolutionMatrix)
     NumberOfIntervals = OutputRangeOfExistence(CompressedRoots)
     OutputMagicNumbers(CompressedRoots, W0List, SolutionMatrix)
+
     if Arguments['write_latex']:
-        WriteLatexTable(CompressedRoots, W0List, SolutionMatrix,
-                GrandTotalList, MaxTensorRank)
+        WriteLatexTables(CompressedRoots, W0List, SolutionMatrix,
+            GrandTotalList, MaxTensorRank)
 
     if NumberOfIntervals == 0:
         return 3
