@@ -82,16 +82,16 @@ if __name__ == '__main__':
         Echo("""The script needs a value for c_s^2 in order to operate. You can
 give a range of values in the format <min> <max> <step>. Alternatively you can
 provide a single value for c_s^2:\n""")
-        Range = input()
+        Range = str(input())
         Range = list(map(float, Range.split()))
     else:
-        Range = Arguments['r']
+        Range = Arguments['c']
 
     if Arguments['m'] is None:
         Echo("""Please enter the indices of the the weights that you want to
 be minimized in the format 1 2 3. You can use -1 to refer to the last shell
 etc.:\n""")
-        MinimizeWeights = input()
+        MinimizeWeights = str(input()))
         MinimizeWeights = list(map(int, MinimizeWeights.split()))
     else:
         MinimizeWeights = Arguments['m']
