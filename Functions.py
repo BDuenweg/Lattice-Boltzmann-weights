@@ -659,39 +659,6 @@ def WriteLatexTables(CompressedRoots, W0List, SolutionMatrix, GrandTotalList,
         return
 
 
-def EnterSolution(TotalNumberOfShells, MaxTensorRank):
-    """Enter solution as polynomials in the speed of sound"""
-    SolutionMatrix = np.zeros((TotalNumberOfShells, MaxTensorRank // 2))
-
-    for i_shell in range(TotalNumberOfShells):
-        EchoError("For shell %d please enter the coefficient of:" % (i_shell + 1))
-
-        for i_rank in range(MaxTensorRank // 2):
-            Rank = 2 * (i_rank + 1)
-            SolutionMatrix[i_shell, i_rank] \
-                = float(input("  c_s^%d: " % Rank))
-
-    return SolutionMatrix
-
-
-def TestSolutionPoly(TotalNumberOfShells, MaxTensorRank, LeftHandSideMatrix, 
-        RightHandSideMatrix, SolutionMatrix):
-    """Test solution that is given as polynomials in the speed of sound"""
-    EchoError("""Please enter the solution that you want to check as
-polynomials c_s^2. You should at least give nine decimal places.""")
-    Echo('\n')
-    SolutionMatrix = EnterSolution(TotalNumberOfShells, MaxTensorRank)
-    if np.allclose(LeftHandSideMatrix.dot(SolutionMatrix),
-                   RightHandSideMatrix):
-        Echo("The given solution solves the system.")
-        return 0
-    else: 
-        Echo("The given solution does NOT solve the system.")
-        Echo(LeftHandSideMatrix.dot(SolutionMatrix))
-        Echo(RightHandSideMatrix)
-        return 1
-
-
 def TestSolution(GrandTotalList, MaxTensorRank, SpacialDimension,
         ListOfTensorDimensions, Solution=[], atol=1e-8, rtol=1e-5):
     """Test validity of the equation A.w = b for given weights w and speed of

@@ -205,9 +205,6 @@ def Analysis(SpacialDimension, MaxTensorRank, ListOfTensorDimensions,
     if Arguments['test'] is not None:
         return TestSolution(GrandTotalList, MaxTensorRank,
                 SpacialDimension, ListOfTensorDimensions, Arguments['test'])
-    if Arguments['test_poly']:
-        return TestSolutionPoly(TotalNumberOfShells, MaxTensorRank,
-                LeftHandSideMatrix, RightHandSideMatrix, SolutionMatrix)
 
     # First do a singular-value decomposition (SVD)
     # of the left-hand side.
