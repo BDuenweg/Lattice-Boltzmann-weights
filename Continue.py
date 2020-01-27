@@ -91,7 +91,7 @@ provide a single value for c_s^2:\n""")
         Echo("""Please enter the indices of the the weights that you want to
 be minimized in the format 1 2 3. You can use -1 to refer to the last shell
 etc.:\n""")
-        MinimizeWeights = str(input()))
+        MinimizeWeights = str(input())
         MinimizeWeights = list(map(int, MinimizeWeights.split()))
     else:
         MinimizeWeights = Arguments['m']
