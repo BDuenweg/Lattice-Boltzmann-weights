@@ -52,15 +52,13 @@ by the following command line arguments:""")
         help="Answer all prompts with yes (may overwrite file data.npz)")
 
     parser.add_argument(
-        "--test-poly", action='store_true',
-        help="Test wether a given set of weights is a solution. Weights "
-        "must be given interactively as polynomials in the speed of sound.")
-
-    parser.add_argument(
-        "--test", nargs='*', type=float,
-        help="Test wether a given set of weights together with a speed of "
-        "sound is a solution. The solution can be supplied interactively if "
-        "no argument is given, or as argument in the form: c_s^2 w0 w1 ...")
+        "--test", action='store_true',
+        help="Test, wether a set of weights that can be written as a linear "
+        "parametric equation "
+        " w = w_0 + lambda_1 w_1 + lambda_2 w_2 "
+        "solves the equation A.w == b for given speed of sound. "
+        "Weights and speed of sound are entered interactively by the user."
+        )
 
     parser.add_argument(
         "--quiet", action='store_true', help="Turn off most of the output")
@@ -100,12 +98,12 @@ def YesNo(Question):
             Echo("  %s" % sorted(list(No)))
 
 
-def Echo(String, Linewidth = LINEWIDTH):
+def Echo(String="\n", Linewidth = LINEWIDTH):
     """Formatted printing"""
     print(tw.fill(String, Linewidth))
 
 
-def EchoError(String, Linewidth = LINEWIDTH):
+def EchoError(String="\n", Linewidth = LINEWIDTH):
     """This will print irregardless of --quiet"""
     iprint(tw.fill(String, Linewidth))
 
@@ -659,33 +657,67 @@ def WriteLatexTables(CompressedRoots, W0List, SolutionMatrix, GrandTotalList,
         return
 
 
+def EnterWeights(TotalNumberOfShells, i_par):
+    EchoError("Please enter the weights w_%di:" % i_par)
+    WTemp = []
+    for i_shell in range(TotalNumberOfShells + 1):
+        Val = float(input("  w_%d%d = " % (i_par, i_shell)))
+        WTemp.append(Val)
+
+    return np.array(WTemp)
+
+
 def TestSolution(GrandTotalList, MaxTensorRank, SpacialDimension,
-        ListOfTensorDimensions, Solution=[], atol=1e-8, rtol=1e-5):
+        ListOfTensorDimensions, Solution=None, atol=1e-8, rtol=1e-5):
     """Test validity of the equation A.w = b for given weights w and speed of
-    sound c_s^2
+    sound c_s^2.
+    The weights can be given as a parametric equation
+        w = w_0 + lambda_1 w_1 + lambda_2 w_2
+    like 
+        Solution = [CsSquared, [[w_00, w_01,...], [[w_10, w_11, ...], ...]
+    If no solution is provided, the user is prompted to enter a solution by 
+    hand.
     """
-    ShellSizes = np.array([len(Shell) for Shell in GrandTotalList])
-    TotalNumberOfShells = len(GrandTotalList)
+
+    ShellSizes = np.array([1] + [len(Shell) for Shell in GrandTotalList])
+    TotalNumberOfShells = len(GrandTotalList) # NOT including zero shell!
+    
+    # Type solution by hand
+    if Solution is None:
+        # Input speed of sound
+        EchoError("Please enter the speed of sound squared: ")
+        CsSquared = float(input("c_s^2 = "))
+        assert(CsSquared >= 0)
+
+        W = []
+
+        # Input w_0
+        i_par = 0
+        WTemp = EnterWeights(TotalNumberOfShells, i_par)
+        if np.dot(WTemp, ShellSizes) - 1. >= atol:
+            EchoError("ERROR: Weights do not satisfy normalization condition!")
+            return 1
+        W.append(WTemp)
+
+        # Input w_i, i > 0
+        while YesNo("Do you want to add further solution vectors for a parametric solution? [Yn]"):
+            i_par += 1
+            WTemp = EnterWeights(TotalNumberOfShells, i_par)
+            if np.dot(WTemp, ShellSizes) >= atol:
+                EchoError("ERROR: Weights do not satisfy normalization condition!")
+                return 1
+            W.append(WTemp)
+
+        Solution = [CsSquared, W]
+        Echo()
 
     LeftHandSideMatrix = FillLeftHandSide(
         SpacialDimension, MaxTensorRank, ListOfTensorDimensions,
         TotalNumberOfShells, GrandTotalList)
 
-
-    if len(Solution) == 0:
-        EchoError("""Please enter the solution that you want to check.""")
-        Echo('\n')
-        # read c_s^2
-        CsSquared = float(input("  c_s^2 = "))
-
-        # read W
-        W = np.zeros(TotalNumberOfShells + 1)
-        for i_shell in range(TotalNumberOfShells + 1):
-            W[i_shell] = float(input("Please enter the weight for shell %d: " % (i_shell)))
-    else:
-        assert(len(Solution) == TotalNumberOfShells + 2)
-        CsSquared = Solution[0]
-        W = Solution[1:]
+    CsSquared = Solution[0]
+    W = Solution[1][0]
+    assert(CsSquared >= 0)
 
     # set A
     n_row = LeftHandSideMatrix.shape[0]
@@ -693,8 +725,7 @@ def TestSolution(GrandTotalList, MaxTensorRank, SpacialDimension,
 
     # pad A so that normalization condition for the weights is included
     A = np.zeros((n_row + 1, n_col + 1))
-    A[0,0] = 1
-    A[0,1:] = ShellSizes
+    A[0,:] = ShellSizes
     A[1:,1:] = LeftHandSideMatrix
 
     # set B
@@ -710,16 +741,24 @@ def TestSolution(GrandTotalList, MaxTensorRank, SpacialDimension,
     B = np.array(B)
 
     # compare
-    if np.allclose(B, A.dot(W), atol=atol, rtol=rtol):
-        Echo("The given solution solves the system.")
-        Echo('A.w - b = ')
-        print(A.dot(W) - B)
-        return 0
-    else: 
-        Echo("The given solution does NOT solve the system.")
-        Echo('A.w - b = ')
-        iprint(A.dot(W) - B)
-        return 1
+    for i_W, W in enumerate(Solution[1]):
+        assert(len(W) == TotalNumberOfShells + 1)
+        if i_W == 0:
+            C = B
+        else:
+            C = np.zeros(len(B))
+
+        if not np.allclose(C, A.dot(W), atol=atol, rtol=rtol):
+            EchoError("The given solution does NOT solve the system.")
+            EchoError("Solution vector %d is not compatible." % i_W)
+            EchoError('A.w%s = ' % '-b' if i_W == 0 else '')
+            EchoError(A.dot(W) - C)
+            return 1
+
+    Echo("The given solution solves the system.")
+    Echo('A.w - b = ')
+    print(A.dot(W) - C)
+    return 0
 
 
 # Subshell analysis

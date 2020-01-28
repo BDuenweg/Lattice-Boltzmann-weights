@@ -203,8 +203,10 @@ def Analysis(SpacialDimension, MaxTensorRank, ListOfTensorDimensions,
 
     # Test given solution
     if Arguments['test'] is not None:
+        Echo()
+        Echo("You have chosen to test a solution.")
         return TestSolution(GrandTotalList, MaxTensorRank,
-                SpacialDimension, ListOfTensorDimensions, Arguments['test'])
+                SpacialDimension, ListOfTensorDimensions, None)
 
     # First do a singular-value decomposition (SVD)
     # of the left-hand side.
