@@ -1,10 +1,11 @@
 """Collection of Functions
 
 Attributes:
-    LINEWIDTH (int): Linewidth for console output
+    LINEWIDTH (int): Line width for console output.
     QUIET: Flag to suppress standard output.
 
 """
+
 from __future__ import print_function
 import random
 import math
@@ -38,8 +39,10 @@ iprint = logging.warning
 # Helper functions
 def ParseArguments():
     """Function to parse command line options.
+
     Returns:
         dict: Dictionary of command line options
+
     """
 
     parser = argparse.ArgumentParser(description="""Calculation of the
@@ -57,7 +60,7 @@ by the following command line arguments:""")
         help="Space separated list of the radii c_i^2 of the desired "
         "velocity shells")
 
-    parser.add_argument("-s", type=int, help="Randon number generator seed")
+    parser.add_argument("-s", type=int, help="Random number generator seed")
 
     parser.add_argument(
         "-y", action='store_true',
@@ -65,7 +68,7 @@ by the following command line arguments:""")
 
     parser.add_argument(
         "--test", action='store_true',
-        help="Test, wether a set of weights that can be written as a linear "
+        help="Test, whether a set of weights that can be written as a linear "
         "parametric equation "
         " w = w_0 + lambda_1 w_1 + lambda_2 w_2 "
         "solves the equation A.w == b for given speed of sound. "
@@ -90,12 +93,14 @@ by the following command line arguments:""")
 
 
 def YesNo(Question):
-    """Ask for yes or no answer and return a boolean.
+    """Ask for yes or no answer and return a Boolean.
     Args:
         Question (str): String that is printed when function is called.
+        
     Returns:
         bool: True, if answer is any of ["YES", "Y", "yes", "y", "Yes", \CR]
             False, if answer is any of ["NO", "N", "no", "n", "No"]
+
     """
 
     Yes = set(["YES", "Y", "yes", "y", "Yes", ""])
@@ -118,14 +123,16 @@ def YesNo(Question):
 
 def Echo(String="\n", Linewidth = LINEWIDTH):
     """Formatted printing
-    If QUIET is set (i.e. via command line option --quiet) this is supressed.
+    If QUIET is set (i.e. via command line option --quiet) this is suppressed.
 
     Args:
         String (str): String to be printed to the console
         Linewidth (int): Maximum line width of console output
     Returns:
         None
+
     """
+
     print(tw.fill(String, Linewidth))
 
 
@@ -138,7 +145,9 @@ def EchoError(String="\n", Linewidth = LINEWIDTH):
         Linewidth (int): Maximum line width of console output
     Returns:
         None
+
     """
+
     iprint(tw.fill(String, Linewidth))
 
 
@@ -148,7 +157,9 @@ def AbsSquared(Vector):
         Vector (numpy.ndarray): Vector that is supposed to be squared
     Returns:
         Return the squared absolute value of Vector
+
     """
+
     return np.sum(np.square(Vector))
 
 
@@ -156,16 +167,19 @@ def AnalyzeTensorDimension(CurrentTensorRank):
     """Recursive generation of lists that specify what types of tensors of rank
     CurrentTensorRank are compatible with cubic invariance and also fully
     symmetric under index exchange. For rank 2, these are just multiples of the
-    2nd rank unit tensor delta_{ij}. Thus tensor dimension is one. For rank 4,
-    these are multiples of delta_{ijkl} and multiples of (delta_{ij} delta_{kl}
-    + perm.). Thus tensor dimension is two. For rank 6, we get another tensor
-    delta_{ijklmn}, but also all possible products of the lower-rank deltas.
+    2nd rank unit tensor :math:`\\delta_{ij}`. Thus tensor dimension is one.
+    For rank 4, these are multiples of :math:`\\delta_{ijkl}` and multiples of
+    :math:`(\\delta_{ij}`, :math:`\\delta_{kl} + \\textrm{perm.})`. Thus tensor
+    dimension is two. For rank 6, we get another tensor
+    :math:`\\delta_{ijklmn}`, but also all possible products of the lower-rank
+    deltas.
     Hence tensor dimension is three. For each new (even) rank M we get another
     delta with M indexes, plus all possible products of the lower-order delta
-    tensors So, for rank two we get [[2]] (1d) for rank four [ [4] , [2,2] ]
-    (2d) for rank six [ [6], [4,2], [2,2,2]] (3d) for rank eight [ [8], [6,2],
-    [4,4], [4,2,2], [2,2,2,2] ] (5d) and so on.  The routine takes care of that
-    "and so on". This is most easily done in a recursive fashion.
+    tensors So, for rank two we get ``[[2]]`` (1d) for rank four 
+    ``[[4], [2,2]]`` (2d) for rank six ``[[6], [4,2], [2,2,2]]`` (3d) for rank
+    eight ``[[8], [6,2], [4,4], [4,2,2], [2,2,2,2]]`` (5d) and so on. 
+    The routine takes care of that "and so on". This is most easily done in a
+    recursive fashion.
 
     Args:
         CurrentTensorRank (int): Tensor rank
@@ -173,7 +187,9 @@ def AnalyzeTensorDimension(CurrentTensorRank):
     Returns:
         int: Dimension of tensor space
         list: List compatible tensors
+
     """
+
     if CurrentTensorRank < 2:
         EchoError("Error: Tensor rank too small")
         exit(127)
@@ -221,6 +237,7 @@ def FindVelocities(SpacialDimension, SquaredVelocity):
 
     Returns:
         list: List of compatible lattice velocity vectors
+
     """
 
     # The list to be returned at the end of the routine
@@ -250,14 +267,16 @@ def FindVelocities(SpacialDimension, SquaredVelocity):
 
 def DoubleFactorial(Number):
     """Implementation of the double factorial.
-        :math: `n!! = n(n-2)(n-4)\dots`
+        :math:`n!! = n(n-2)(n-4)\\dots`
 
     Args:
         Number (int): Number
 
     Returns:
-        int: Number!!
+        int: Number :math:`!!`
+
     """
+
     if Number == 0 or Number == 1:
         return 1
     else:
@@ -272,8 +291,10 @@ def MakeRandomVector(SpacialDimension):
 
     Returns:
         list: Vector of length one with random orientation in d-dimensional
-            space
+        space.
+
     """
+
     MySum = 2.
     while MySum > 1.:
         MySum = 0.
@@ -292,21 +313,20 @@ def MakeRandomVector(SpacialDimension):
 
 def LatticeSum(RandomVector, ListOfVelocities, TensorRank):
     """Calculate the sum
-    .. math::
-       A_{rs} = \frac{1}{(m_r-1)!!} \sum_{i \in s}
-       (\vec{c}_i\cdot\vec{n}_r)^{m_r}
+    :math:`A_{rs} = \\frac{1}{(m_r-1)!!} \sum_{i \in s} (\\vec{c}_i\cdot\\vec{n}_r)^{m_r}`
 
-    for tensor rank r and shell s.
+    for tensor rank :math:`r` and shell :math:`s`.
 
     Args:
-        RandomVector (numpy.ndarray): r-th random unit vector
-        ListOfVelocities (list): List of velocity vectors in shell s
-        TensorRank (int): Tensor rank r
+        RandomVector (numpy.ndarray): :math:`r`-th random unit vector
+        ListOfVelocities (list): List of velocity vectors in shell :math:`s`
+        TensorRank (int): Tensor rank :math:`r`
 
     Returns:
-        float: :math: `A_{rs}`
+        float: :math:`A_{rs}`
 
     """
+
     SpacialDimension = len(RandomVector)
     NumberOfVelocities = len(ListOfVelocities)
     MySum = 0.
@@ -326,20 +346,22 @@ def LatticeSum(RandomVector, ListOfVelocities, TensorRank):
 
 def FillLeftHandSide(SpacialDimension, MaxTensorRank, ListOfTensorDimensions,
                      TotalNumberOfShells, GrandTotalList):
-    """Construct the :math: `R \times N_s` matrix :math: `A`
+    """Construct the :math:`R \\times N_s` matrix :math:`A`
 
     Args:
         SpacialDimension (int): Spacial dimension
         MaxTensorRank (int): Highest tensor rank (M) to consider.
         ListOfTensorDimensions (list): List of the dimensions of tensor space
-            for tensors of rank :math: `2,4,\dots, M`.
-        TotalNumberOfShells (int): Total number of velocity shells :math: `N_s`
-        GrandTotalList (list): List of lists. The :math: `s`-th sublist
-            contains all velocity vectors of shell :math: `s`.
+            for tensors of rank :math:`2,4,\\dots, M`.
+        TotalNumberOfShells (int): Total number of velocity shells :math:`N_s`
+        GrandTotalList (list): List of lists. The :math:`s`-th sublist
+            contains all velocity vectors of shell :math:`s`.
 
     Returns:
-        numpy.ndarray: Matrix :math: `A`
+        numpy.ndarray: Matrix :math:`A`
+
     """
+
     LeftHandSideList = []
 
     # k loop is loop over tensor ranks
@@ -366,16 +388,18 @@ def FillLeftHandSide(SpacialDimension, MaxTensorRank, ListOfTensorDimensions,
 
 
 def FillRightHandSide(MaxTensorRank, ListOfTensorDimensions):
-    """Construct the matrix :math: `D: D_{r\mu} = \delta_{m_r \mu}`
+    """Construct the matrix :math:`D: D_{r\\mu} = \delta_{m_r \\mu}`
 
     Args:
-        MaxTensorRank (int): Maximum tensor rank :math: `M`
+        MaxTensorRank (int): Maximum tensor rank :math:`M`
         ListOfTensorDimensions (list): List of the dimensions of tensor space
-            for tensors of rank :math: `2,4,\dots, M`.
+            for tensors of rank :math:`2,4,\\dots, M`.
 
     Returns:
-        numpy.ndarray: Matrix :math: `D`
+        numpy.ndarray: Matrix :math:`D`
+
     """
+
     RightHandSideList = []
     NumberOfColumns = MaxTensorRank // 2
 
@@ -412,7 +436,9 @@ def RatApprox(x):
 
     Returns:
         str: Approximate fraction as string
+
     """
+
     TOL = 1.e-12
     if abs(x) < TOL:
         return "0"
@@ -430,14 +456,17 @@ def RatApprox(x):
 
 def EvaluateWeights(W0List, SolutionMatrix, CsSquared):
     """Calculate numerical weights from their polynomial coefficients
+
     Args:
         W0List (list): List of polynomial coefficients for zero shell
-        SolutionMatrix (numpy.ndarray): Solution matrix :math: `Q`
+        SolutionMatrix (numpy.ndarray): Solution matrix :math:`Q`
         CsSquared (float): Speed of sound squared
 
     Returns:
-        list: List of numerical weights [w_0, w_1, ...]
+        list: List of numerical weights :math:`[w_0, w_1, \dots]`
+
     """
+
     ListOfWeightValues = []
     MySum = 0.
     MyRange = len(W0List)
@@ -459,14 +488,17 @@ def EvaluateWeights(W0List, SolutionMatrix, CsSquared):
 
 def IndicatorFunction(W0List, SolutionMatrix, CsSquared):
     """Tests, whether solution yields all positive weights.
+
     Args:
         W0List (list): List of polynomial coefficients for zero shell
-        SolutionMatrix (numpy.ndarray): Solution matrix :math: `Q`
+        SolutionMatrix (numpy.ndarray): Solution matrix :math:`Q`
         CsSquared (float): Speed of sound squared
 
     Returns:
         bool: True if all weights positive, False otherwise
+
     """
+
     ListOfWeightValues = EvaluateWeights(W0List, SolutionMatrix, CsSquared)
     MyRange = len(ListOfWeightValues)
     for i in range(MyRange):
@@ -482,11 +514,12 @@ def FindRangeOfExistence(W0List, SolutionMatrix):
 
     Args:
         W0List (list): List of polynomial coefficients for zero shell
-        SolutionMatrix (numpy.ndarray): Solution matrix :math: `Q`
+        SolutionMatrix (numpy.ndarray): Solution matrix :math:`Q`
 
     Returns:
         list: List CompressedRoots of roots that form valid intervals for
-            the speed of sound.
+        the speed of sound.
+
     """
 
     TOL = 1.e-10
@@ -559,6 +592,7 @@ def OutputRangeOfExistence(CompressedRoots):
 
     Returns:
         int: Number of valid intervals
+
     """
 
     NumberOfPoints = len(CompressedRoots)
@@ -593,10 +627,11 @@ def OutputMagicNumbers(CompressedRoots, W0List, SolutionMatrix):
         CompressedRoots (list): List of roots that form valid intervals for the
         speed of sound.
         W0List (list): List of polynomial coefficients for zero shell
-        SolutionMatrix (numpy.ndarray): Solution matrix :math: `Q`
+        SolutionMatrix (numpy.ndarray): Solution matrix :math:`Q`
 
     Returns:
         None
+
     """
 
     if MyRange == 0:
@@ -629,8 +664,10 @@ def Frexp10(Float):
         Float (float): Original number
 
     Returns:
-        tuple: (Mantissa, Exponent)
+        tuple: ``(Mantissa, Exponent)``
+
     """
+
     if Float == 0:
         return (0, 0)
 
@@ -648,16 +685,18 @@ def Type(Shell):
     """Method to determine typical velocity vector for Shell.
 
     Args:
-        Shell (list): List of velocity vectors, e.g. [[0,1],[1,0]]
+        Shell (list): List of velocity vectors, e.g. ``[[0,1],[1,0]]``
 
     Returns:
-        tuple: Typical velocity vector, e.g. (0,1)
+        tuple: Typical velocity vector, e.g. ``(0,1)``
+
     """
+
     return tuple(np.sort(list(map(abs, Shell[0]))))
 
 
 def WriteLatexNumber(Value, Outfile, Precision = 8, Rational = False):
-    """Write Value to Outfile in a Latex compatible way
+    """Write Value to ``Outfile`` in a Latex compatible way
 
     Args:
         Value (float): Value
@@ -667,7 +706,9 @@ def WriteLatexNumber(Value, Outfile, Precision = 8, Rational = False):
 
     Returns:
         None
+
     """
+
     if Rational:
         Outfile.write("$%10s$" % RatApprox(Value))
 
@@ -695,15 +736,16 @@ def WriteLatexTables(CompressedRoots, W0List, SolutionMatrix, GrandTotalList,
         CompressedRoots (list): List of roots that form the valid intervals for
             the speed of sound
         W0List (list): List of polynomial coefficients for zero shell
-        SolutionMatrix (numpy.ndarray): Solution matrix :math: `Q`
-        GrandTotalList (list): List of lists. The :math: `s`-th sublist
-            contains all velocity vectors of shell :math: `s`.
-        MaxTensorRank (int): Maximum tensor rank :math: `M`
+        SolutionMatrix (numpy.ndarray): Solution matrix :math:`Q`
+        GrandTotalList (list): List of lists. The :math:`s`-th sublist
+            contains all velocity vectors of shell :math:`s`.
+        MaxTensorRank (int): Maximum tensor rank :math:`M`
         Precision (int): Number of digits
         Rational (bool): Approximate numbers by fractions
 
     Returns:
         None
+
     """
 
     if os.path.isfile(Filename):
@@ -840,7 +882,7 @@ def WriteLatexTables(CompressedRoots, W0List, SolutionMatrix, GrandTotalList,
             else:
                 # write zeroth coefficient
                 Outfile.write("& 0 " % ZerothColumn[i_shell])
-                # write othoer coefficients
+                # write other coefficients
                 for i_col in range(Columns):
                     Value = SolutionMatrix[i_shell - 1][i_col]
                     Outfile.write("& ")
@@ -861,14 +903,17 @@ def WriteLatexTables(CompressedRoots, W0List, SolutionMatrix, GrandTotalList,
 
 def EnterWeights(TotalNumberOfShells, i_par=0):
     """Gets vector of weights from user input
+
     Args:
         TotalNumberOfShells (int): Number of shells INCLUDING zero-shell
         i_par (int): Solution vector index (parametric solutions are written as
-        w = w_0 + lambda_1 w_1 + lambda_2 w_2 + ...).
+            :math:`\\vec{w} = \\vec{w}_0 + \\lambda_1 \\vec{w}_1 + \\lambda_2 \\vec{w}_2 + \\dots`)
 
     Returns:
         numpy.ndarray: Vector of weights
+
     """
+
     EchoError("Please enter the weights w_%di:" % i_par)
     WTemp = []
     for i_shell in range(TotalNumberOfShells + 1):
@@ -880,29 +925,30 @@ def EnterWeights(TotalNumberOfShells, i_par=0):
 
 def TestSolution(GrandTotalList, MaxTensorRank, SpacialDimension,
         ListOfTensorDimensions, Solution=None, atol=1e-8, rtol=1e-5):
-    """Test validity of the equation A.w = b for given weights w and speed of
-    sound c_s^2.
+    """Test validity of the equation :math:`A.w = b` for given weights w and
+    speed of sound :math:`c_s^2`.
     For this the numpy routine numpy.allclose() is used. A solution is deemed
-    valid, if absolute(A.w - b) <= (atol + rtol * absolute(A.w)).
+    valid, if :math:`|A\\vec{w} - b| \\leq (\mathrm{atol} + \mathrm{rtol} |A \\vec{w}|`).
 
     The weights can be given as a linear parametric equation
-        w = w_0 + lambda_1 w_1 + lambda_2 w_2 + ...
+    :math:`\\vec{w} = \\vec{w}_0 + \lambda_1 \\vec{w}_1 + \lambda_2 \\vec{w}_2 + \\dots`
 
     Args:
-        GrandTotalList (list): List of lists. The :math: `s`-th sublist
-            contains all velocity vectors of shell :math: `s`.
-        MaxTensorRank (int): Maximum tensor rank :math: `M`
+        GrandTotalList (list): List of lists. The :math:`s`-th sublist
+            contains all velocity vectors of shell :math:`s`.
+        MaxTensorRank (int): Maximum tensor rank :math:`M`
         SpacialDimension (int): SpacialDimension
         ListOfTensorDimensions (list): List of the dimensions of tensor space
-            for tensors of rank :math: `2,4,\dots, M`.
+            for tensors of rank :math:`2,4,\\dots, M`.
         Solution (list): Solution that is to be tested in the form
-            [CsSquared, [[w_00, w_01,...], [[w_10, w_11, ...], ...]
+            ``[CsSquared, [[w_00, w_01,...], [[w_10, w_11, ...], ...]``
             If None is given, the user is prompted to enter a solution by hand.
         atol (float): Absolute tolerance (parameter for numpy.allclose())
         rtol (float): Relative tolerance (parameter for numpy.allclose())
 
     Returns:
         int: 0 if solution is valid, otherwise 1
+
     """
 
     ShellSizes = np.array([1] + [len(Shell) for Shell in GrandTotalList])
@@ -989,19 +1035,19 @@ def TestSolution(GrandTotalList, MaxTensorRank, SpacialDimension,
 
 # Subshell analysis
 def ToMatrix(Array):
-    """Convert an array of unit vectors to proper matrix. For example
-         [0,2,1]
-    will be converted to
-        [[1,  0,  0],
-         [0,  0,  1],
-         [0,  1,  0]].
+    """Convert an array of unit vector representations to proper matrix.
+    For example
+    ``[0,2,1]`` will be converted to 
+    ``[[1,0,0], [0,0,1], [0,1,0]]``.
 
     Args:
         Array (numpy.ndarray): Array of integers
 
     Returns:
         numpy.ndarray: Transformation matrix
+
     """
+
     Dim = len(Array)
     Matrix = np.zeros((Dim, Dim), dtype=np.int8)
 
@@ -1014,18 +1060,20 @@ def ToMatrix(Array):
 
 def GetGroup(SpacialDimension):
     """Compute the cubic group. Each transformation matrix in the group is made
-    up of 2d unit vectors of type (0...0,+-1,0...0). We will identify a vector
-    with i-th component 1 and 0 elsewhere by the number i. A vector with i-th
-    component -1 and 0 elsewhere is identified by the number -i.
+    up of 2d unit vectors of type :math:`(0\\dots0,+-1,0\\dots0)`.
+    We will identify a vector with i-th component 1 and 0 elsewhere by the
+    number :math:`i`. A vector with :math:`i`-th component -1 and 0 elsewhere
+    is identified by the number :math:`-i`.
     The cubic group then consists of all orthogonal matrices, with columns
     made up of the above unit vectors.
-    In general there are :math: `d! 2^d` such transformations.
+    In general there are :math:`d! 2^d` such transformations.
 
     Args:
         SpacialDimension (int): Spacial dimension
 
     Returns:
         list: A list of all transformation matrices in the cubic group
+
     """
 
     Echo("Computing cubic group in %d dimensions..." % SpacialDimension)
@@ -1072,7 +1120,8 @@ def Contains(Array, List):
         List (list): List of numpy arrays
 
     Returns:
-        bool: True if Array is consined in List, False otherwise.
+        bool: True if Array is contained in List, False otherwise.
+
     """
 
     return any((Array == X).all() for X in List)
@@ -1088,13 +1137,16 @@ def ContainsInSublist(Array, ListOfLists):
         List (list): List of Lists of numpy arrays
 
     Returns:
-        bool: True if Array is consined in ListOfLists, False otherwise.
+        bool: True if Array is contained in ListOfLists, False otherwise.
+
     """
+
     return any(Contains(Array, List) for List in ListOfLists)
 
 
 def ComputeSubshell(Velocity, Group):
     """Compute the (sub)shell that is being spanned by Velocity wrt. Group.
+
     Args:
         Velocity (numpy.ndarray): Velocity vector
         Group (list): List of transformation matrices that form the cubic group
@@ -1102,7 +1154,9 @@ def ComputeSubshell(Velocity, Group):
     Returns:
         list: List of velocity vectors that form the velocity shell spanned by
             Group
+
     """
+
     Subshell = []
     for i in range(len(Group)):
         New = np.dot(Group[i], Velocity)
@@ -1122,7 +1176,9 @@ def GetListOfSubshells(Shell, Group):
 
     Returns:
         list: List of distinct velocity shells
+
     """
+
     ListOfSubshells = []
     for Velocity in Shell:
         Subshell = ComputeSubshell(Velocity, Group)

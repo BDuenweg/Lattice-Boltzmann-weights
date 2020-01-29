@@ -1,7 +1,3 @@
-import sys
-import random
-import numpy as np
-from Functions import *
 """
 Calculate LB model vectors and weights for a simple
 cubic lattice of arbitrary dimension
@@ -10,30 +6,39 @@ The method is described in D. Spiller's and B. Duenweg's paper
 "Semi-automatic construction of Lattice Boltzmann models"
 Therefore explanations in the code are not very detailed
 
-Exit codes:
-0:   System has unique solution
-1:   System has no solution
-2:   System is underdetermined and requires further examination
-3:   System has unique solution but there is no physically valid range of
-     existence
-127: General error
+Exit codes\:
+    - 0\:   System has unique solution
+    - 1\:   System has no solution
+    - 2\:   System is underdetermined and requires further examination
+    - 3\:   System has unique solution but there is no physically valid range of
+      existence
+    - 127\: General error
+
 """
+
+import sys
+import random
+import numpy as np
+from Functions import *
 
 
 # Gather input data
-def GetInputData(CustomArguments=None, ListOfThrowawayStrings=None):
+def GetInputData(Arguments=None, ListOfThrowawayStrings=None):
     """Parse command line arguments. You can optionally give a list with the
     subshells that you want to discard.
+
     Args:
-        CustomArguments(dict): List of indeces of the subshells to be
-            discarded. This is useful, if the function is used in an automated
-            script that does not rely on user input.
-        CustomArguments(dict): Dictionary of command line arguments. This is
+        Arguments (dict): Dictionary of command line arguments. This is
             useful, if the function is used in an automated script that does
             not rely on user input.
+        ListOfThrowawayStrings (list): List of indices of the subshells to be
+            discarded. This is useful, if the function is used in an automated
+            script that does not rely on user input.
+
     Returns:
-        tuple: Tuple (SpacialDimension, MaxTensorRank, ListOfTensorDimensions,
-            GrandTotalList, Arguments)
+        tuple: Tuple ``(SpacialDimension, MaxTensorRank,
+        ListOfTensorDimensions, GrandTotalList, Arguments)``
+
     """
 
     if CustomArguments is None:
@@ -204,23 +209,25 @@ def Analysis(SpacialDimension, MaxTensorRank, ListOfTensorDimensions,
 
     Args:
         SpacialDimension (int): Spacial dimension
-        MaxTensorRank (int): Maximum tensor rank :math: `M`
+        MaxTensorRank (int): Maximum tensor rank :math:`M`
         ListOfTensorDimensions (list): List of the dimensions of tensor space
-            for tensors of rank :math: `2,4,\dots, M`.
-        GrandTotalList (list): List of lists. The :math: `s`-th sublist
-            contains all velocity vectors of shell :math: `s`.
+            for tensors of rank :math:`2,4,\\dots, M`.
+        GrandTotalList (list): List of lists. The :math:`s`-th sublist
+            contains all velocity vectors of shell :math:`s`.
         Arguments (dict): Dictionary of arguments as returned by function
             ParseArguments()
 
-        Returns:
-            int: Exit codes:
-                0:   System has unique solution
-                1:   System has no solution
-                2:   System is underdetermined and requires further examination
-                3:   System has unique solution but there is no physically
-                     valid range of existence
-                127: General error
+    Returns:
+        int: Return codes\:
+            - 0\:   System has unique solution
+            - 1\:   System has no solution
+            - 2\:   System is underdetermined and requires further examination
+            - 3\:   System has unique solution but there is no physically
+              valid range of existence
+            - 127\: General error
+
     """
+
     Echo("Now the analysis starts ...")
     TotalNumberOfShells = len(GrandTotalList)
     ShellSizes = np.array([len(Shell) for Shell in GrandTotalList])
