@@ -1,0 +1,1017 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Welcome to LBweights’s documentation! &#8212; LBweights  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="welcome-to-lbweights-s-documentation">
+<h1>Welcome to LBweights’s documentation!<a class="headerlink" href="#welcome-to-lbweights-s-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+</ul>
+</div>
+<div class="section" id="lattice-boltzmann-weights">
+<h1>Lattice-Boltzmann-weights<a class="headerlink" href="#lattice-boltzmann-weights" title="Permalink to this headline">¶</a></h1>
+<p>“LBweights.py” is a Python script that calculates the weights of the
+(user-supplied) shells of a Lattice Boltzmann model on a simple cubic lattice,
+based upon numerically solving the Maxwell-Boltzmann constraint (MBC)
+equations. The script supports arbitrary spacial dimensions and arbitrary
+tensor ranks up to which the MBCs must hold. The script requires a Python
+installation (version 3.5 or 2.7) as well as NumPy. It assumes that the speed
+of sound is a free parameter and hence needs more shells than a model whose
+speed of sound takes on a definite value that is required for consistency. The
+output is typically given in the form: weights as a function of sound speed.
+There are cases where the supplied set of velocities does not admit any
+solution; in this case the script aborts. There are also cases where it admits
+infinitely many solutions; in this case an additional script “Continue.py” is
+used, which builds upon data that the main script stores on file.</p>
+<p>In case of a unique solution, the script also calculates the interval(s) of
+sound speed for which all the weights are positive. At the borders of these
+intervals, at least one of the weights is zero, such that the corresponding
+shell may be discarded and one obtains a “reduced model”. In this way, the
+script is able to reproduce well-known models like D2Q9, D3Q19, D3Q15, etc.,
+but can also easily find higher-order models with significantly more speeds.</p>
+<p>For Continue.py, the user has to supply a well-defined value of the sound speed
+(or an interval plus step size for scanning several values). Moreover, it
+requires the specification of a shell (or of a set of shells) whose weight (or
+sum of weights) is to be minimized. Continue.py then finds an optimal solution
+to the thus-specified linear programming problem. Continue.py therefore
+requires the package cvxpy, see <a class="reference external" href="http://www.cvxpy.org/">http://www.cvxpy.org/</a> .</p>
+<p>A significant part of the code is not in the main scripts but rather in a
+collection of functions in “Functions.py”, which must be available to
+“LBweights.py” and “Continue.py”.</p>
+<p>Tedious tasks like the construction of velocity shells from the velocity
+modulus are done by the script.</p>
+<p>Apart from being useful for researchers and practitioners, the script may
+perhaps also be used in a classroom setting.</p>
+<p>A detailed description of the underlying mathematical theory is given in the
+paper “Semi-automatic construction of Lattice Boltzmann models” by Dominic
+Spiller and Burkhard Duenweg. A link to that paper will be given as soon as it
+is published.</p>
+</div>
+<div class="section" id="module-LBweights">
+<span id="lbweights"></span><h1>LBweights<a class="headerlink" href="#module-LBweights" title="Permalink to this headline">¶</a></h1>
+<p>Calculate LB model vectors and weights for a simple
+cubic lattice of arbitrary dimension</p>
+<p>The method is described in D. Spiller’s and B. Duenweg’s paper
+“Semi-automatic construction of Lattice Boltzmann models”
+Therefore explanations in the code are not very detailed</p>
+<dl class="docutils">
+<dt>Exit codes:</dt>
+<dd><ul class="first last simple">
+<li>0:   System has unique solution</li>
+<li>1:   System has no solution</li>
+<li>2:   System is underdetermined and requires further examination</li>
+<li>3:   System has unique solution but there is no physically valid range of
+existence</li>
+<li>127: General error</li>
+</ul>
+</dd>
+</dl>
+<dl class="function">
+<dt id="LBweights.Analysis">
+<code class="descclassname">LBweights.</code><code class="descname">Analysis</code><span class="sig-paren">(</span><em>SpacialDimension</em>, <em>MaxTensorRank</em>, <em>ListOfTensorDimensions</em>, <em>GrandTotalList</em>, <em>Arguments</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LBweights.html#Analysis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#LBweights.Analysis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs the analysis for a given set of parameters</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>SpacialDimension</strong> (<em>int</em>) – Spacial dimension</li>
+<li><strong>MaxTensorRank</strong> (<em>int</em>) – Maximum tensor rank <img class="math" src="_images/math/450a8e2c2320d77181e0d4fc68c947e9a5de8ecb.png" alt="M"/></li>
+<li><strong>ListOfTensorDimensions</strong> (<em>list</em>) – List of the dimensions of tensor space
+for tensors of rank <img class="math" src="_images/math/a5a537cb4a1dc5991aa69d48b58c19d8887a952b.png" alt="2,4,\dots, M"/>.</li>
+<li><strong>GrandTotalList</strong> (<em>list</em>) – List of lists. The <img class="math" src="_images/math/63751cb2e98ba393b0f22e45ca127c3cebb61487.png" alt="s"/>-th sublist
+contains all velocity vectors of shell <img class="math" src="_images/math/63751cb2e98ba393b0f22e45ca127c3cebb61487.png" alt="s"/>.</li>
+<li><strong>Arguments</strong> (<em>dict</em>) – Dictionary of arguments as returned by function
+ParseArguments()</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
+<dt>Return codes:</dt>
+<dd><ul class="first last simple">
+<li>0:   System has unique solution</li>
+<li>1:   System has no solution</li>
+<li>2:   System is underdetermined and requires further examination</li>
+<li>3:   System has unique solution but there is no physically
+valid range of existence</li>
+<li>127: General error</li>
+</ul>
+</dd>
+</dl>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">int</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="LBweights.GetInputData">
+<code class="descclassname">LBweights.</code><code class="descname">GetInputData</code><span class="sig-paren">(</span><em>Arguments=None</em>, <em>ListOfThrowawayStrings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LBweights.html#GetInputData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#LBweights.GetInputData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse command line arguments. You can optionally give a list with the
+subshells that you want to discard.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>Arguments</strong> (<em>dict</em>) – Dictionary of command line arguments. This is
+useful, if the function is used in an automated script that does
+not rely on user input.</li>
+<li><strong>ListOfThrowawayStrings</strong> (<em>list</em>) – List of indices of the subshells to be
+discarded. This is useful, if the function is used in an automated
+script that does not rely on user input.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Tuple <code class="docutils literal notranslate"><span class="pre">(SpacialDimension,</span> <span class="pre">MaxTensorRank,</span>
+<span class="pre">ListOfTensorDimensions,</span> <span class="pre">GrandTotalList,</span> <span class="pre">Arguments)</span></code></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-Continue">
+<span id="continue"></span><h1>Continue<a class="headerlink" href="#module-Continue" title="Permalink to this headline">¶</a></h1>
+<p>Contains routines to treat the case of infinitely many solutions.</p>
+<dl class="docutils">
+<dt>Exit codes:</dt>
+<dd><ul class="first last simple">
+<li>0:   No optimal solution found</li>
+<li>1:   Optimal solution found</li>
+<li>127: General error</li>
+</ul>
+</dd>
+</dl>
+<dl class="function">
+<dt id="Continue.ParseArguments">
+<code class="descclassname">Continue.</code><code class="descname">ParseArguments</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Continue.html#ParseArguments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Continue.ParseArguments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to parse command line options.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary of command line options</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Continue.Solve">
+<code class="descclassname">Continue.</code><code class="descname">Solve</code><span class="sig-paren">(</span><em>V</em>, <em>ReducedRhs</em>, <em>NumberOfRows</em>, <em>ShellSizes</em>, <em>CsSquared</em>, <em>MinimizeWeights</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Continue.html#Solve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Continue.Solve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solve the minimization problem via convex optimization.
+See: <a class="reference external" href="https://www.cvxpy.org/">https://www.cvxpy.org/</a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>V</strong> (<em>numpy.ndarray</em>) – Orthogonal matrix that results from the singular
+value decomposition A=U.S.V</li>
+<li><strong>ReducedRhs</strong> (<em>numpy.ndarray</em>) – Pruned matrix that has the inverse singular
+values on the diagonal.</li>
+<li><strong>NumberOfRows</strong> (<em>int</em>) – Number of rows of A</li>
+<li><strong>ShellSizes</strong> (<em>list</em>) – List of shell sizes (int) NOT including zero shell</li>
+<li><strong>CsSquared</strong> (<em>float</em>) – Speed of sound squared</li>
+<li><strong>MinimizeWeights</strong> (<em>list</em>) – List of indices of the weights that shall be
+minimized in the procedure</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
+<dt>cvxpy problem. Problem.status indicates</dt>
+<dd><p class="first last">whether or not the problem could be solved.</p>
+</dd>
+</dl>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">cvxpy.problems.problem.Problem</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-Functions">
+<span id="functions"></span><h1>Functions<a class="headerlink" href="#module-Functions" title="Permalink to this headline">¶</a></h1>
+<p>Collection of Functions</p>
+<dl class="attribute">
+<dt id="Functions.LINEWIDTH">
+<code class="descclassname">Functions.</code><code class="descname">LINEWIDTH</code><a class="headerlink" href="#Functions.LINEWIDTH" title="Permalink to this definition">¶</a></dt>
+<dd><p>Line width for console output.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Functions.QUIET">
+<code class="descclassname">Functions.</code><code class="descname">QUIET</code><a class="headerlink" href="#Functions.QUIET" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flag to suppress standard output.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.AbsSquared">
+<code class="descclassname">Functions.</code><code class="descname">AbsSquared</code><span class="sig-paren">(</span><em>Vector</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#AbsSquared"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.AbsSquared" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the squared absolute value of numpy array.
+:param Vector: Vector that is supposed to be squared
+:type Vector: numpy.ndarray</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Return the squared absolute value of Vector</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.AnalyzeTensorDimension">
+<code class="descclassname">Functions.</code><code class="descname">AnalyzeTensorDimension</code><span class="sig-paren">(</span><em>CurrentTensorRank</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#AnalyzeTensorDimension"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.AnalyzeTensorDimension" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursive generation of lists that specify what types of tensors of rank
+CurrentTensorRank are compatible with cubic invariance and also fully
+symmetric under index exchange. For rank 2, these are just multiples of the
+2nd rank unit tensor <img class="math" src="_images/math/c254685188a3ace1c1e032a0d516a1f71de15874.png" alt="\delta_{ij}"/>. Thus tensor dimension is one.
+For rank 4, these are multiples of <img class="math" src="_images/math/9ae14657bed65f42fb76ac3b5902e2cd15b6c988.png" alt="\delta_{ijkl}"/> and multiples of
+<img class="math" src="_images/math/39cdfa9d573b777dc9dfd9df41ba9f2a64611aa4.png" alt="(\delta_{ij}"/>, <img class="math" src="_images/math/2e5f3aacae7deaebc36ec27b8a675ca77bf56e7e.png" alt="\delta_{kl} + \textrm{perm.})"/>. Thus tensor
+dimension is two. For rank 6, we get another tensor
+<img class="math" src="_images/math/1189a77dd20448623e43035afa24da1bc5c508fc.png" alt="\delta_{ijklmn}"/>, but also all possible products of the lower-rank
+deltas.
+Hence tensor dimension is three. For each new (even) rank M we get another
+delta with M indexes, plus all possible products of the lower-order delta
+tensors So, for rank two we get <code class="docutils literal notranslate"><span class="pre">[[2]]</span></code> (1d) for rank four
+<code class="docutils literal notranslate"><span class="pre">[[4],</span> <span class="pre">[2,2]]</span></code> (2d) for rank six <code class="docutils literal notranslate"><span class="pre">[[6],</span> <span class="pre">[4,2],</span> <span class="pre">[2,2,2]]</span></code> (3d) for rank
+eight <code class="docutils literal notranslate"><span class="pre">[[8],</span> <span class="pre">[6,2],</span> <span class="pre">[4,4],</span> <span class="pre">[4,2,2],</span> <span class="pre">[2,2,2,2]]</span></code> (5d) and so on.
+The routine takes care of that “and so on”. This is most easily done in a
+recursive fashion.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>CurrentTensorRank</strong> (<em>int</em>) – Tensor rank</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Dimension of tensor space
+list: List compatible tensors</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.ComputeSubshell">
+<code class="descclassname">Functions.</code><code class="descname">ComputeSubshell</code><span class="sig-paren">(</span><em>Velocity</em>, <em>Group</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#ComputeSubshell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.ComputeSubshell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the (sub)shell that is being spanned by Velocity wrt. Group.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>Velocity</strong> (<em>numpy.ndarray</em>) – Velocity vector</li>
+<li><strong>Group</strong> (<em>list</em>) – List of transformation matrices that form the cubic group</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
+<dt>List of velocity vectors that form the velocity shell spanned by</dt>
+<dd><p class="first last">Group</p>
+</dd>
+</dl>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.Contains">
+<code class="descclassname">Functions.</code><code class="descname">Contains</code><span class="sig-paren">(</span><em>Array</em>, <em>List</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#Contains"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.Contains" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks whether given numpy array is contained in list. The all()
+function is defined on numpy arrays and evaluates True if all elements are
+True.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>Array</strong> (<em>numpy.ndarray</em>) – numpy array</li>
+<li><strong>List</strong> (<em>list</em>) – List of numpy arrays</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">True if Array is contained in List, False otherwise.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">bool</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.ContainsInSublist">
+<code class="descclassname">Functions.</code><code class="descname">ContainsInSublist</code><span class="sig-paren">(</span><em>Array</em>, <em>ListOfLists</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#ContainsInSublist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.ContainsInSublist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks whether given numpy array is contained in a list of lists.
+The all() function is defined on numpy arrays and evaluates True if all
+elements are True.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>Array</strong> (<em>numpy.ndarray</em>) – numpy array</li>
+<li><strong>List</strong> (<em>list</em>) – List of Lists of numpy arrays</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">True if Array is contained in ListOfLists, False otherwise.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">bool</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.DoubleFactorial">
+<code class="descclassname">Functions.</code><code class="descname">DoubleFactorial</code><span class="sig-paren">(</span><em>Number</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#DoubleFactorial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.DoubleFactorial" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Implementation of the double factorial.</dt>
+<dd><img class="math" src="_images/math/c2b1f3d3377684831f98cc1a4ba65814ddc4fc48.png" alt="n!! = n(n-2)(n-4)\dots"/></dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>Number</strong> (<em>int</em>) – Number</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Number <img class="math" src="_images/math/1f169840f5a1eaeced5a1be189510ecaaa147fb6.png" alt="!!"/></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.Echo">
+<code class="descclassname">Functions.</code><code class="descname">Echo</code><span class="sig-paren">(</span><em>String='\n'</em>, <em>Linewidth=70</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#Echo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.Echo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Formatted printing
+If QUIET is set (i.e. via command line option –quiet) this is suppressed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>String</strong> (<em>str</em>) – String to be printed to the console</li>
+<li><strong>Linewidth</strong> (<em>int</em>) – Maximum line width of console output</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.EchoError">
+<code class="descclassname">Functions.</code><code class="descname">EchoError</code><span class="sig-paren">(</span><em>String='\n'</em>, <em>Linewidth=70</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#EchoError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.EchoError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Formatted printing
+Prints irregardless of value of QUIET</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>String</strong> (<em>str</em>) – String to be printed to the console</li>
+<li><strong>Linewidth</strong> (<em>int</em>) – Maximum line width of console output</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.EnterWeights">
+<code class="descclassname">Functions.</code><code class="descname">EnterWeights</code><span class="sig-paren">(</span><em>TotalNumberOfShells</em>, <em>i_par=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#EnterWeights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.EnterWeights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets vector of weights from user input</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>TotalNumberOfShells</strong> (<em>int</em>) – Number of shells INCLUDING zero-shell</li>
+<li><strong>i_par</strong> (<em>int</em>) – Solution vector index (parametric solutions are written as
+<img class="math" src="_images/math/21a75148852a7963740b581f583838b85ae76818.png" alt="\vec{w} = \vec{w}_0 + \lambda_1 \vec{w}_1 + \lambda_2 \vec{w}_2 + \dots"/>)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Vector of weights</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">numpy.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.EvaluateWeights">
+<code class="descclassname">Functions.</code><code class="descname">EvaluateWeights</code><span class="sig-paren">(</span><em>W0List</em>, <em>SolutionMatrix</em>, <em>CsSquared</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#EvaluateWeights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.EvaluateWeights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate numerical weights from their polynomial coefficients</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>W0List</strong> (<em>list</em>) – List of polynomial coefficients for zero shell</li>
+<li><strong>SolutionMatrix</strong> (<em>numpy.ndarray</em>) – Solution matrix <img class="math" src="_images/math/331157c6afbd113256867fd408d80277d1a24756.png" alt="Q"/></li>
+<li><strong>CsSquared</strong> (<em>float</em>) – Speed of sound squared</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">List of numerical weights <img class="math" src="_images/math/172f70fec584cccf3a17d0b1678325916fb53834.png" alt="[w_0, w_1, \dots]"/></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.FillLeftHandSide">
+<code class="descclassname">Functions.</code><code class="descname">FillLeftHandSide</code><span class="sig-paren">(</span><em>SpacialDimension</em>, <em>MaxTensorRank</em>, <em>ListOfTensorDimensions</em>, <em>TotalNumberOfShells</em>, <em>GrandTotalList</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#FillLeftHandSide"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.FillLeftHandSide" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct the <img class="math" src="_images/math/136dc6f3522c7927c2acbc88b040daf3dac4d424.png" alt="R \times N_s"/> matrix <img class="math" src="_images/math/0043fe6507e9b1d112e07a2801e24927e267dd50.png" alt="A"/></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>SpacialDimension</strong> (<em>int</em>) – Spacial dimension</li>
+<li><strong>MaxTensorRank</strong> (<em>int</em>) – Highest tensor rank (M) to consider.</li>
+<li><strong>ListOfTensorDimensions</strong> (<em>list</em>) – List of the dimensions of tensor space
+for tensors of rank <img class="math" src="_images/math/a5a537cb4a1dc5991aa69d48b58c19d8887a952b.png" alt="2,4,\dots, M"/>.</li>
+<li><strong>TotalNumberOfShells</strong> (<em>int</em>) – Total number of velocity shells <img class="math" src="_images/math/264b450117947534e8a1d9b1af756cfa5cdf0784.png" alt="N_s"/></li>
+<li><strong>GrandTotalList</strong> (<em>list</em>) – List of lists. The <img class="math" src="_images/math/63751cb2e98ba393b0f22e45ca127c3cebb61487.png" alt="s"/>-th sublist
+contains all velocity vectors of shell <img class="math" src="_images/math/63751cb2e98ba393b0f22e45ca127c3cebb61487.png" alt="s"/>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Matrix <img class="math" src="_images/math/0043fe6507e9b1d112e07a2801e24927e267dd50.png" alt="A"/></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">numpy.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.FillRightHandSide">
+<code class="descclassname">Functions.</code><code class="descname">FillRightHandSide</code><span class="sig-paren">(</span><em>MaxTensorRank</em>, <em>ListOfTensorDimensions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#FillRightHandSide"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.FillRightHandSide" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct the matrix <img class="math" src="_images/math/7562eff9ee3697c154730f7fe65524bfbaef3ec3.png" alt="D: D_{r\mu} = \delta_{m_r \mu}"/></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>MaxTensorRank</strong> (<em>int</em>) – Maximum tensor rank <img class="math" src="_images/math/450a8e2c2320d77181e0d4fc68c947e9a5de8ecb.png" alt="M"/></li>
+<li><strong>ListOfTensorDimensions</strong> (<em>list</em>) – List of the dimensions of tensor space
+for tensors of rank <img class="math" src="_images/math/a5a537cb4a1dc5991aa69d48b58c19d8887a952b.png" alt="2,4,\dots, M"/>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Matrix <img class="math" src="_images/math/3cf5aa5abe312e6fd4996975341a43aa566e8d8d.png" alt="D"/></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">numpy.ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.FindRangeOfExistence">
+<code class="descclassname">Functions.</code><code class="descname">FindRangeOfExistence</code><span class="sig-paren">(</span><em>W0List</em>, <em>SolutionMatrix</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#FindRangeOfExistence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.FindRangeOfExistence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make use of the function “roots” that needs the coefficients in reverse
+order, in order to find the roots of the weight polynomials. If inbetween
+two roots all weights are positive, add them to list CompressedRoots</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>W0List</strong> (<em>list</em>) – List of polynomial coefficients for zero shell</li>
+<li><strong>SolutionMatrix</strong> (<em>numpy.ndarray</em>) – Solution matrix <img class="math" src="_images/math/331157c6afbd113256867fd408d80277d1a24756.png" alt="Q"/></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">List CompressedRoots of roots that form valid intervals for
+the speed of sound.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.FindVelocities">
+<code class="descclassname">Functions.</code><code class="descname">FindVelocities</code><span class="sig-paren">(</span><em>SpacialDimension</em>, <em>SquaredVelocity</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#FindVelocities"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.FindVelocities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scans the cubic lattice for lattice velocity with squared length
+SquaredVelocity</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>SpacialDimension</strong> (<em>int</em>) – SpacialDimension</li>
+<li><strong>SquaredVelocity</strong> (<em>int</em>) – Squared length of compatible lattice velocities</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">List of compatible lattice velocity vectors</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.Frexp10">
+<code class="descclassname">Functions.</code><code class="descname">Frexp10</code><span class="sig-paren">(</span><em>Float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#Frexp10"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.Frexp10" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns exponent and mantissa in base 10</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>Float</strong> (<em>float</em>) – Original number</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">(Mantissa,</span> <span class="pre">Exponent)</span></code></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.GetGroup">
+<code class="descclassname">Functions.</code><code class="descname">GetGroup</code><span class="sig-paren">(</span><em>SpacialDimension</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#GetGroup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.GetGroup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the cubic group. Each transformation matrix in the group is made
+up of 2d unit vectors of type <img class="math" src="_images/math/182d010ab9a39aa77afaad7330ed1458d311073b.png" alt="(0\dots0,+-1,0\dots0)"/>.
+We will identify a vector with i-th component 1 and 0 elsewhere by the
+number <img class="math" src="_images/math/df0deb143e5ac127f00bd248ee8001ecae572adc.png" alt="i"/>. A vector with <img class="math" src="_images/math/df0deb143e5ac127f00bd248ee8001ecae572adc.png" alt="i"/>-th component -1 and 0 elsewhere
+is identified by the number <img class="math" src="_images/math/1567c94881ed1991ab0e116c26dcfd8dc00eedcb.png" alt="-i"/>.
+The cubic group then consists of all orthogonal matrices, with columns
+made up of the above unit vectors.
+In general there are <img class="math" src="_images/math/7226be366366a0c0926ae17222a50d48e6779b89.png" alt="d! 2^d"/> such transformations.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>SpacialDimension</strong> (<em>int</em>) – Spacial dimension</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A list of all transformation matrices in the cubic group</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.GetListOfSubshells">
+<code class="descclassname">Functions.</code><code class="descname">GetListOfSubshells</code><span class="sig-paren">(</span><em>Shell</em>, <em>Group</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#GetListOfSubshells"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.GetListOfSubshells" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies all group transformations to all velocities in shell and returns
+all distinct shells that result.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>Shell</strong> (<em>list</em>) – List of velocity vectors</li>
+<li><strong>Group</strong> (<em>list</em>) – List of transformation matrices that form the cubic group</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">List of distinct velocity shells</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.IndicatorFunction">
+<code class="descclassname">Functions.</code><code class="descname">IndicatorFunction</code><span class="sig-paren">(</span><em>W0List</em>, <em>SolutionMatrix</em>, <em>CsSquared</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#IndicatorFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.IndicatorFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tests, whether solution yields all positive weights.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>W0List</strong> (<em>list</em>) – List of polynomial coefficients for zero shell</li>
+<li><strong>SolutionMatrix</strong> (<em>numpy.ndarray</em>) – Solution matrix <img class="math" src="_images/math/331157c6afbd113256867fd408d80277d1a24756.png" alt="Q"/></li>
+<li><strong>CsSquared</strong> (<em>float</em>) – Speed of sound squared</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">True if all weights positive, False otherwise</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">bool</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.LatticeSum">
+<code class="descclassname">Functions.</code><code class="descname">LatticeSum</code><span class="sig-paren">(</span><em>RandomVector</em>, <em>ListOfVelocities</em>, <em>TensorRank</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#LatticeSum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.LatticeSum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the sum
+<img class="math" src="_images/math/53ef88f01248731ff43fc5fd76244f16a3697dd8.png" alt="A_{rs} = \frac{1}{(m_r-1)!!} \sum_{i \in s} (\vec{c}_i\cdot\vec{n}_r)^{m_r}"/></p>
+<p>for tensor rank <img class="math" src="_images/math/eaa6ad49a7f78fe5a13b486690163bf2dc7e3e60.png" alt="r"/> and shell <img class="math" src="_images/math/63751cb2e98ba393b0f22e45ca127c3cebb61487.png" alt="s"/>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>RandomVector</strong> (<em>numpy.ndarray</em>) – <img class="math" src="_images/math/eaa6ad49a7f78fe5a13b486690163bf2dc7e3e60.png" alt="r"/>-th random unit vector</li>
+<li><strong>ListOfVelocities</strong> (<em>list</em>) – List of velocity vectors in shell <img class="math" src="_images/math/63751cb2e98ba393b0f22e45ca127c3cebb61487.png" alt="s"/></li>
+<li><strong>TensorRank</strong> (<em>int</em>) – Tensor rank <img class="math" src="_images/math/eaa6ad49a7f78fe5a13b486690163bf2dc7e3e60.png" alt="r"/></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><img class="math" src="_images/math/61993fe609665523f86ecdbbb608a28eabaab469.png" alt="A_{rs}"/></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">float</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.MakeRandomVector">
+<code class="descclassname">Functions.</code><code class="descname">MakeRandomVector</code><span class="sig-paren">(</span><em>SpacialDimension</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#MakeRandomVector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.MakeRandomVector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a random vector uniformly distributed on the unit sphere.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>SpacialDimension</strong> (<em>int</em>) – Spacial dimension d</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Vector of length one with random orientation in d-dimensional
+space.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.OutputRangeOfExistence">
+<code class="descclassname">Functions.</code><code class="descname">OutputRangeOfExistence</code><span class="sig-paren">(</span><em>CompressedRoots</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#OutputRangeOfExistence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.OutputRangeOfExistence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Screen output of the intervals of the speed of sound that yield all
+positive weights.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>CompressedRoots</strong> (<em>list</em>) – List of roots that form valid intervals for
+the speed of sound.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Number of valid intervals</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.ParseArguments">
+<code class="descclassname">Functions.</code><code class="descname">ParseArguments</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#ParseArguments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.ParseArguments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to parse command line options.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary of command line options</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.RatApprox">
+<code class="descclassname">Functions.</code><code class="descname">RatApprox</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#RatApprox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.RatApprox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates numerator and denominator for a floating point number x and
+returns the output as a string.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> (<em>float</em>) – Number to approximate as fraction.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Approximate fraction as string</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.TestSolution">
+<code class="descclassname">Functions.</code><code class="descname">TestSolution</code><span class="sig-paren">(</span><em>GrandTotalList</em>, <em>MaxTensorRank</em>, <em>SpacialDimension</em>, <em>ListOfTensorDimensions</em>, <em>Solution=None</em>, <em>atol=1e-08</em>, <em>rtol=1e-05</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#TestSolution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.TestSolution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test validity of the equation <img class="math" src="_images/math/e2cd577685a9087acd6958fca46e8aa8a10cfb18.png" alt="A.w = b"/> for given weights w and
+speed of sound <img class="math" src="_images/math/240341864a72a65cc5f3b89067c7d9879cc7c4e0.png" alt="c_s^2"/>.
+For this the numpy routine numpy.allclose() is used. A solution is deemed
+valid, if <img class="math" src="_images/math/4ef105ce81a71fd531b04274b932f3b8fc5ca9fb.png" alt="|A\vec{w} - b| \leq (\mathrm{atol} + \mathrm{rtol} |A \vec{w}|"/>).</p>
+<p>The weights can be given as a linear parametric equation
+<img class="math" src="_images/math/21a75148852a7963740b581f583838b85ae76818.png" alt="\vec{w} = \vec{w}_0 + \lambda_1 \vec{w}_1 + \lambda_2 \vec{w}_2 + \dots"/></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>GrandTotalList</strong> (<em>list</em>) – List of lists. The <img class="math" src="_images/math/63751cb2e98ba393b0f22e45ca127c3cebb61487.png" alt="s"/>-th sublist
+contains all velocity vectors of shell <img class="math" src="_images/math/63751cb2e98ba393b0f22e45ca127c3cebb61487.png" alt="s"/>.</li>
+<li><strong>MaxTensorRank</strong> (<em>int</em>) – Maximum tensor rank <img class="math" src="_images/math/450a8e2c2320d77181e0d4fc68c947e9a5de8ecb.png" alt="M"/></li>
+<li><strong>SpacialDimension</strong> (<em>int</em>) – SpacialDimension</li>
+<li><strong>ListOfTensorDimensions</strong> (<em>list</em>) – List of the dimensions of tensor space
+for tensors of rank <img class="math" src="_images/math/a5a537cb4a1dc5991aa69d48b58c19d8887a952b.png" alt="2,4,\dots, M"/>.</li>
+<li><strong>Solution</strong> (<em>list</em>) – Solution that is to be tested in the form
+<code class="docutils literal notranslate"><span class="pre">[CsSquared,</span> <span class="pre">[[w_00,</span> <span class="pre">w_01,...],</span> <span class="pre">[[w_10,</span> <span class="pre">w_11,</span> <span class="pre">...],</span> <span class="pre">...]</span></code>
+If None is given, the user is prompted to enter a solution by hand.</li>
+<li><strong>atol</strong> (<em>float</em>) – Absolute tolerance (parameter for numpy.allclose())</li>
+<li><strong>rtol</strong> (<em>float</em>) – Relative tolerance (parameter for numpy.allclose())</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">0 if solution is valid, otherwise 1</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">int</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.ToMatrix">
+<code class="descclassname">Functions.</code><code class="descname">ToMatrix</code><span class="sig-paren">(</span><em>Array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#ToMatrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.ToMatrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert an array of unit vector representations to proper matrix.
+For example
+<code class="docutils literal notranslate"><span class="pre">[0,2,1]</span></code> will be converted to
+<code class="docutils literal notranslate"><span class="pre">[[1,0,0],</span> <span class="pre">[0,0,1],</span> <span class="pre">[0,1,0]]</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>Array</strong> (<em>numpy.ndarray</em>) – Array of integers</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Transformation matrix</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">numpy.ndarray</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.Type">
+<code class="descclassname">Functions.</code><code class="descname">Type</code><span class="sig-paren">(</span><em>Shell</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#Type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.Type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to determine typical velocity vector for Shell.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>Shell</strong> (<em>list</em>) – List of velocity vectors, e.g. <code class="docutils literal notranslate"><span class="pre">[[0,1],[1,0]]</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Typical velocity vector, e.g. <code class="docutils literal notranslate"><span class="pre">(0,1)</span></code></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.WriteLatexNumber">
+<code class="descclassname">Functions.</code><code class="descname">WriteLatexNumber</code><span class="sig-paren">(</span><em>Value</em>, <em>Outfile</em>, <em>Precision=8</em>, <em>Rational=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#WriteLatexNumber"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.WriteLatexNumber" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write Value to <code class="docutils literal notranslate"><span class="pre">Outfile</span></code> in a Latex compatible way</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>Value</strong> (<em>float</em>) – Value</li>
+<li><strong>Outfile</strong> – Output file</li>
+<li><strong>Precision</strong> (<em>int</em>) – Number of digits</li>
+<li><strong>Rational</strong> (<em>bool</em>) – Approximate numbers by fractions</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.WriteLatexTables">
+<code class="descclassname">Functions.</code><code class="descname">WriteLatexTables</code><span class="sig-paren">(</span><em>CompressedRoots</em>, <em>W0List</em>, <em>SolutionMatrix</em>, <em>GrandTotalList</em>, <em>MaxTensorRank</em>, <em>Precision=8</em>, <em>Rational=False</em>, <em>Filename='latex_tables.tex'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#WriteLatexTables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.WriteLatexTables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write unique solution to a file in form of a latex table. This will
+append to any existing file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>CompressedRoots</strong> (<em>list</em>) – List of roots that form the valid intervals for
+the speed of sound</li>
+<li><strong>W0List</strong> (<em>list</em>) – List of polynomial coefficients for zero shell</li>
+<li><strong>SolutionMatrix</strong> (<em>numpy.ndarray</em>) – Solution matrix <img class="math" src="_images/math/331157c6afbd113256867fd408d80277d1a24756.png" alt="Q"/></li>
+<li><strong>GrandTotalList</strong> (<em>list</em>) – List of lists. The <img class="math" src="_images/math/63751cb2e98ba393b0f22e45ca127c3cebb61487.png" alt="s"/>-th sublist
+contains all velocity vectors of shell <img class="math" src="_images/math/63751cb2e98ba393b0f22e45ca127c3cebb61487.png" alt="s"/>.</li>
+<li><strong>MaxTensorRank</strong> (<em>int</em>) – Maximum tensor rank <img class="math" src="_images/math/450a8e2c2320d77181e0d4fc68c947e9a5de8ecb.png" alt="M"/></li>
+<li><strong>Precision</strong> (<em>int</em>) – Number of digits</li>
+<li><strong>Rational</strong> (<em>bool</em>) – Approximate numbers by fractions</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="Functions.YesNo">
+<code class="descclassname">Functions.</code><code class="descname">YesNo</code><span class="sig-paren">(</span><em>Question</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#YesNo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.YesNo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ask for yes or no answer and return a Boolean.
+:param Question: String that is printed when function is called.
+:type Question: str</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="docutils">
+<dt>True, if answer is any of [“YES”, “Y”, “yes”, “y”, “Yes”, CR]</dt>
+<dd>False, if answer is any of [“NO”, “N”, “no”, “n”, “No”]</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">LBweights</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Burkhard Dünweg, Dominic Spiller.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

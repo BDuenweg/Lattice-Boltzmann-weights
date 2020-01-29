@@ -1,0 +1,1278 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Functions &#8212; LBweights  documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Functions</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Collection of Functions</span>
+
+<span class="sd">Attributes:</span>
+<span class="sd">    LINEWIDTH (int): Line width for console output.</span>
+<span class="sd">    QUIET: Flag to suppress standard output.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">textwrap</span> <span class="k">as</span> <span class="nn">tw</span>
+<span class="kn">from</span> <span class="nn">decimal</span> <span class="k">import</span> <span class="n">Decimal</span>
+<span class="kn">from</span> <span class="nn">fractions</span> <span class="k">import</span> <span class="n">Fraction</span>
+
+<span class="c1"># use raw_input instead of input when python2 is used</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="nb">input</span> <span class="o">=</span> <span class="n">raw_input</span>
+<span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+<span class="c1"># set print options</span>
+<span class="n">LINEWIDTH</span> <span class="o">=</span> <span class="mi">70</span>
+<span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">linewidth</span><span class="o">=</span><span class="n">LINEWIDTH</span><span class="p">)</span>
+
+<span class="n">QUIET</span> <span class="o">=</span> <span class="s2">&quot;--quiet&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span> <span class="k">if</span> <span class="n">QUIET</span> <span class="k">else</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">info</span>
+<span class="n">iprint</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">warning</span>
+
+<span class="c1"># Helper functions</span>
+<div class="viewcode-block" id="ParseArguments"><a class="viewcode-back" href="../index.html#Functions.ParseArguments">[docs]</a><span class="k">def</span> <span class="nf">ParseArguments</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Function to parse command line options.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: Dictionary of command line options</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;Calculation of the</span>
+<span class="s2">weights of an LB model.</span><span class="se">\n</span><span class="s2">You can either supply the input data interactively or</span>
+<span class="s2">by the following command line arguments:&quot;&quot;&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-d&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;spacial dimension of the lattice&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-m&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Maximum tensor rank&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Space separated list of the radii c_i^2 of the desired &quot;</span>
+        <span class="s2">&quot;velocity shells&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-s&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Random number generator seed&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-y&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Answer all prompts with yes (may overwrite file data.npz)&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--test&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Test, whether a set of weights that can be written as a linear &quot;</span>
+        <span class="s2">&quot;parametric equation &quot;</span>
+        <span class="s2">&quot; w = w_0 + lambda_1 w_1 + lambda_2 w_2 &quot;</span>
+        <span class="s2">&quot;solves the equation A.w == b for given speed of sound. &quot;</span>
+        <span class="s2">&quot;Weights and speed of sound are entered interactively by the user.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--quiet&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Turn off most of the output&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--write-latex&quot;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Write unique solution to the file </span><span class="se">\&quot;</span><span class="s2">latex_tables.dat</span><span class="se">\&quot;</span><span class="s2"> in form &quot;</span>
+        <span class="s2">&quot;of a latex table. This will append to any existing file.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># if no arguments are given, print help text</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">print_help</span><span class="p">()</span>
+        <span class="n">Echo</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+
+    <span class="k">return</span> <span class="nb">vars</span><span class="p">(</span><span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="YesNo"><a class="viewcode-back" href="../index.html#Functions.YesNo">[docs]</a><span class="k">def</span> <span class="nf">YesNo</span><span class="p">(</span><span class="n">Question</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Ask for yes or no answer and return a Boolean.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        Question (str): String that is printed when function is called.</span>
+<span class="sd">        </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        bool: True, if answer is any of [&quot;YES&quot;, &quot;Y&quot;, &quot;yes&quot;, &quot;y&quot;, &quot;Yes&quot;, \CR]</span>
+<span class="sd">            False, if answer is any of [&quot;NO&quot;, &quot;N&quot;, &quot;no&quot;, &quot;n&quot;, &quot;No&quot;]</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">Yes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="s2">&quot;YES&quot;</span><span class="p">,</span> <span class="s2">&quot;Y&quot;</span><span class="p">,</span> <span class="s2">&quot;yes&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;Yes&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">])</span>
+    <span class="n">No</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="s2">&quot;NO&quot;</span><span class="p">,</span> <span class="s2">&quot;N&quot;</span><span class="p">,</span> <span class="s2">&quot;no&quot;</span><span class="p">,</span> <span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="s2">&quot;No&quot;</span><span class="p">])</span>
+
+    <span class="n">Question</span> <span class="o">=</span> <span class="n">tw</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">Question</span><span class="p">,</span> <span class="n">LINEWIDTH</span><span class="p">)</span>
+
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">Answer</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="n">Question</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">Answer</span> <span class="ow">in</span> <span class="n">Yes</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">Answer</span> <span class="ow">in</span> <span class="n">No</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;Possible answers:&quot;</span><span class="p">)</span>
+            <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;  </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">Yes</span><span class="p">)))</span>
+            <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;or&quot;</span><span class="p">)</span>
+            <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;  </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">No</span><span class="p">)))</span></div>
+
+
+<div class="viewcode-block" id="Echo"><a class="viewcode-back" href="../index.html#Functions.Echo">[docs]</a><span class="k">def</span> <span class="nf">Echo</span><span class="p">(</span><span class="n">String</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">Linewidth</span> <span class="o">=</span> <span class="n">LINEWIDTH</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Formatted printing</span>
+<span class="sd">    If QUIET is set (i.e. via command line option --quiet) this is suppressed.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        String (str): String to be printed to the console</span>
+<span class="sd">        Linewidth (int): Maximum line width of console output</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">tw</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">Linewidth</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="EchoError"><a class="viewcode-back" href="../index.html#Functions.EchoError">[docs]</a><span class="k">def</span> <span class="nf">EchoError</span><span class="p">(</span><span class="n">String</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">Linewidth</span> <span class="o">=</span> <span class="n">LINEWIDTH</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Formatted printing</span>
+<span class="sd">    Prints irregardless of value of QUIET</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        String (str): String to be printed to the console</span>
+<span class="sd">        Linewidth (int): Maximum line width of console output</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">iprint</span><span class="p">(</span><span class="n">tw</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">Linewidth</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="AbsSquared"><a class="viewcode-back" href="../index.html#Functions.AbsSquared">[docs]</a><span class="k">def</span> <span class="nf">AbsSquared</span><span class="p">(</span><span class="n">Vector</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the squared absolute value of numpy array.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        Vector (numpy.ndarray): Vector that is supposed to be squared</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        Return the squared absolute value of Vector</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">Vector</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="AnalyzeTensorDimension"><a class="viewcode-back" href="../index.html#Functions.AnalyzeTensorDimension">[docs]</a><span class="k">def</span> <span class="nf">AnalyzeTensorDimension</span><span class="p">(</span><span class="n">CurrentTensorRank</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Recursive generation of lists that specify what types of tensors of rank</span>
+<span class="sd">    CurrentTensorRank are compatible with cubic invariance and also fully</span>
+<span class="sd">    symmetric under index exchange. For rank 2, these are just multiples of the</span>
+<span class="sd">    2nd rank unit tensor :math:`\\delta_{ij}`. Thus tensor dimension is one.</span>
+<span class="sd">    For rank 4, these are multiples of :math:`\\delta_{ijkl}` and multiples of</span>
+<span class="sd">    :math:`(\\delta_{ij}`, :math:`\\delta_{kl} + \\textrm{perm.})`. Thus tensor</span>
+<span class="sd">    dimension is two. For rank 6, we get another tensor</span>
+<span class="sd">    :math:`\\delta_{ijklmn}`, but also all possible products of the lower-rank</span>
+<span class="sd">    deltas.</span>
+<span class="sd">    Hence tensor dimension is three. For each new (even) rank M we get another</span>
+<span class="sd">    delta with M indexes, plus all possible products of the lower-order delta</span>
+<span class="sd">    tensors So, for rank two we get ``[[2]]`` (1d) for rank four </span>
+<span class="sd">    ``[[4], [2,2]]`` (2d) for rank six ``[[6], [4,2], [2,2,2]]`` (3d) for rank</span>
+<span class="sd">    eight ``[[8], [6,2], [4,4], [4,2,2], [2,2,2,2]]`` (5d) and so on. </span>
+<span class="sd">    The routine takes care of that &quot;and so on&quot;. This is most easily done in a</span>
+<span class="sd">    recursive fashion.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        CurrentTensorRank (int): Tensor rank</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        int: Dimension of tensor space</span>
+<span class="sd">        list: List compatible tensors</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">CurrentTensorRank</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">EchoError</span><span class="p">(</span><span class="s2">&quot;Error: Tensor rank too small&quot;</span><span class="p">)</span>
+        <span class="n">exit</span><span class="p">(</span><span class="mi">127</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">CurrentTensorRank</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">EchoError</span><span class="p">(</span><span class="s2">&quot;Error: Tensor rank uneven&quot;</span><span class="p">)</span>
+        <span class="n">exit</span><span class="p">(</span><span class="mi">127</span><span class="p">)</span>
+
+    <span class="n">FirstEntry</span> <span class="o">=</span> <span class="n">CurrentTensorRank</span>
+    <span class="n">FirstEntryList</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">FirstEntryList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">FirstEntry</span><span class="p">)</span>
+
+    <span class="n">ListOfPossibleTensors</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">ListOfPossibleTensors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">FirstEntryList</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">FirstEntry</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span><span class="p">,</span> <span class="n">ListOfPossibleTensors</span>
+
+    <span class="k">while</span> <span class="n">FirstEntry</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">FirstEntry</span> <span class="o">=</span> <span class="n">FirstEntry</span> <span class="o">-</span> <span class="mi">2</span>
+        <span class="n">FirstEntryList</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">FirstEntryList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">FirstEntry</span><span class="p">)</span>
+        <span class="n">Rest</span> <span class="o">=</span> <span class="n">CurrentTensorRank</span> <span class="o">-</span> <span class="n">FirstEntry</span>
+        <span class="n">TensorDimension</span><span class="p">,</span> <span class="n">ReducedListOfPossibleTensors</span> <span class="o">=</span> \
+            <span class="n">AnalyzeTensorDimension</span><span class="p">(</span><span class="n">Rest</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">TensorDimension</span><span class="p">):</span>
+            <span class="n">ReducedListOfArrangements</span> <span class="o">=</span> <span class="n">ReducedListOfPossibleTensors</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+            <span class="k">if</span><span class="p">(</span><span class="n">ReducedListOfArrangements</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">FirstEntry</span><span class="p">):</span>
+                <span class="n">ListOfArrangements</span> <span class="o">=</span> <span class="n">FirstEntryList</span> <span class="o">+</span> <span class="n">ReducedListOfArrangements</span>
+                <span class="n">ListOfPossibleTensors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ListOfArrangements</span><span class="p">)</span>
+
+    <span class="n">TensorDimension</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ListOfPossibleTensors</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">TensorDimension</span><span class="p">,</span> <span class="n">ListOfPossibleTensors</span></div>
+
+
+<div class="viewcode-block" id="FindVelocities"><a class="viewcode-back" href="../index.html#Functions.FindVelocities">[docs]</a><span class="k">def</span> <span class="nf">FindVelocities</span><span class="p">(</span><span class="n">SpacialDimension</span><span class="p">,</span> <span class="n">SquaredVelocity</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Scans the cubic lattice for lattice velocity with squared length</span>
+<span class="sd">    SquaredVelocity</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        SpacialDimension (int): SpacialDimension</span>
+<span class="sd">        SquaredVelocity (int): Squared length of compatible lattice velocities</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: List of compatible lattice velocity vectors</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># The list to be returned at the end of the routine</span>
+    <span class="n">ListOfVelocities</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># number of lattice sites to be scanned</span>
+    <span class="n">LinearLatticeSize</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">SquaredVelocity</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">FullLatticeSize</span> <span class="o">=</span> <span class="n">LinearLatticeSize</span> <span class="o">**</span> <span class="n">SpacialDimension</span>
+
+    <span class="k">for</span> <span class="n">Site</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">FullLatticeSize</span><span class="p">):</span>
+        <span class="n">WorkNumber</span> <span class="o">=</span> <span class="n">Site</span>
+        <span class="n">CurrentVelocitySquared</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">TempVector</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">SpacialDimension</span><span class="p">):</span>
+            <span class="n">Coordinate</span> <span class="o">=</span> <span class="n">WorkNumber</span> <span class="o">%</span> <span class="n">LinearLatticeSize</span>
+            <span class="n">WorkNumber</span> <span class="o">=</span> <span class="p">(</span><span class="n">WorkNumber</span> <span class="o">-</span> <span class="n">Coordinate</span><span class="p">)</span> <span class="o">//</span> <span class="n">LinearLatticeSize</span>
+            <span class="n">ShiftedCoordinate</span> <span class="o">=</span> <span class="n">Coordinate</span> <span class="o">-</span> <span class="n">SquaredVelocity</span>
+            <span class="n">TempVector</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ShiftedCoordinate</span><span class="p">)</span>
+            <span class="n">CurrentVelocitySquared</span> <span class="o">+=</span> <span class="n">ShiftedCoordinate</span> <span class="o">**</span> <span class="mi">2</span>
+
+        <span class="k">if</span> <span class="n">CurrentVelocitySquared</span> <span class="o">==</span> <span class="n">SquaredVelocity</span><span class="p">:</span>
+            <span class="n">ListOfVelocities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">TempVector</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">ListOfVelocities</span></div>
+
+
+<div class="viewcode-block" id="DoubleFactorial"><a class="viewcode-back" href="../index.html#Functions.DoubleFactorial">[docs]</a><span class="k">def</span> <span class="nf">DoubleFactorial</span><span class="p">(</span><span class="n">Number</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Implementation of the double factorial.</span>
+<span class="sd">        :math:`n!! = n(n-2)(n-4)\\dots`</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        Number (int): Number</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        int: Number :math:`!!`</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">Number</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">Number</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Number</span> <span class="o">*</span> <span class="n">DoubleFactorial</span><span class="p">(</span><span class="n">Number</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MakeRandomVector"><a class="viewcode-back" href="../index.html#Functions.MakeRandomVector">[docs]</a><span class="k">def</span> <span class="nf">MakeRandomVector</span><span class="p">(</span><span class="n">SpacialDimension</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generate a random vector uniformly distributed on the unit sphere.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        SpacialDimension (int): Spacial dimension d</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: Vector of length one with random orientation in d-dimensional</span>
+<span class="sd">        space.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">MySum</span> <span class="o">=</span> <span class="mf">2.</span>
+    <span class="k">while</span> <span class="n">MySum</span> <span class="o">&gt;</span> <span class="mf">1.</span><span class="p">:</span>
+        <span class="n">MySum</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="n">RandomVector</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">SpacialDimension</span><span class="p">):</span>
+            <span class="n">RandomNumber</span> <span class="o">=</span> <span class="mf">2.</span> <span class="o">*</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">-</span> <span class="mf">1.</span>
+            <span class="n">RandomVector</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RandomNumber</span><span class="p">)</span>
+            <span class="n">MySum</span> <span class="o">+=</span> <span class="n">RandomNumber</span> <span class="o">**</span> <span class="mi">2</span>
+
+    <span class="n">Factor</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">MySum</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">SpacialDimension</span><span class="p">):</span>
+        <span class="n">RandomVector</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="o">*=</span> <span class="n">Factor</span>
+
+    <span class="k">return</span> <span class="n">RandomVector</span></div>
+
+
+<div class="viewcode-block" id="LatticeSum"><a class="viewcode-back" href="../index.html#Functions.LatticeSum">[docs]</a><span class="k">def</span> <span class="nf">LatticeSum</span><span class="p">(</span><span class="n">RandomVector</span><span class="p">,</span> <span class="n">ListOfVelocities</span><span class="p">,</span> <span class="n">TensorRank</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the sum</span>
+<span class="sd">    :math:`A_{rs} = \\frac{1}{(m_r-1)!!} \sum_{i \in s} (\\vec{c}_i\cdot\\vec{n}_r)^{m_r}`</span>
+
+<span class="sd">    for tensor rank :math:`r` and shell :math:`s`.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        RandomVector (numpy.ndarray): :math:`r`-th random unit vector</span>
+<span class="sd">        ListOfVelocities (list): List of velocity vectors in shell :math:`s`</span>
+<span class="sd">        TensorRank (int): Tensor rank :math:`r`</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float: :math:`A_{rs}`</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">SpacialDimension</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">RandomVector</span><span class="p">)</span>
+    <span class="n">NumberOfVelocities</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ListOfVelocities</span><span class="p">)</span>
+    <span class="n">MySum</span> <span class="o">=</span> <span class="mf">0.</span>
+    <span class="k">for</span> <span class="n">Velocity</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NumberOfVelocities</span><span class="p">):</span>
+        <span class="n">VelocityVector</span> <span class="o">=</span> <span class="n">ListOfVelocities</span><span class="p">[</span><span class="n">Velocity</span><span class="p">]</span>
+        <span class="n">ScalarProduct</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">SpacialDimension</span><span class="p">):</span>
+            <span class="n">ScalarProduct</span> <span class="o">+=</span> <span class="n">RandomVector</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="o">*</span> <span class="n">VelocityVector</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span>
+
+        <span class="n">ScalarProduct</span> <span class="o">=</span> <span class="n">ScalarProduct</span> <span class="o">**</span> <span class="n">TensorRank</span>
+        <span class="n">MySum</span> <span class="o">+=</span> <span class="n">ScalarProduct</span>
+
+    <span class="n">MySum</span> <span class="o">=</span> <span class="n">MySum</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">DoubleFactorial</span><span class="p">(</span><span class="n">TensorRank</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">MySum</span></div>
+
+
+<div class="viewcode-block" id="FillLeftHandSide"><a class="viewcode-back" href="../index.html#Functions.FillLeftHandSide">[docs]</a><span class="k">def</span> <span class="nf">FillLeftHandSide</span><span class="p">(</span><span class="n">SpacialDimension</span><span class="p">,</span> <span class="n">MaxTensorRank</span><span class="p">,</span> <span class="n">ListOfTensorDimensions</span><span class="p">,</span>
+                     <span class="n">TotalNumberOfShells</span><span class="p">,</span> <span class="n">GrandTotalList</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Construct the :math:`R \\times N_s` matrix :math:`A`</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        SpacialDimension (int): Spacial dimension</span>
+<span class="sd">        MaxTensorRank (int): Highest tensor rank (M) to consider.</span>
+<span class="sd">        ListOfTensorDimensions (list): List of the dimensions of tensor space</span>
+<span class="sd">            for tensors of rank :math:`2,4,\\dots, M`.</span>
+<span class="sd">        TotalNumberOfShells (int): Total number of velocity shells :math:`N_s`</span>
+<span class="sd">        GrandTotalList (list): List of lists. The :math:`s`-th sublist</span>
+<span class="sd">            contains all velocity vectors of shell :math:`s`.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.ndarray: Matrix :math:`A`</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">LeftHandSideList</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># k loop is loop over tensor ranks</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">MaxTensorRank</span> <span class="o">//</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="n">TensorRank</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">2</span>
+        <span class="n">LocalDimensionOfTensorSpace</span> <span class="o">=</span> <span class="n">ListOfTensorDimensions</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+
+        <span class="c1"># j loop is loop over random vectors</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">LocalDimensionOfTensorSpace</span><span class="p">):</span>
+            <span class="n">RandomVector</span> <span class="o">=</span> <span class="n">MakeRandomVector</span><span class="p">(</span><span class="n">SpacialDimension</span><span class="p">)</span>
+            <span class="n">RowList</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="c1"># i loop is loop over velocity shells</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">TotalNumberOfShells</span><span class="p">):</span>
+                <span class="n">ListOfVelocities</span> <span class="o">=</span> <span class="n">GrandTotalList</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">ShellSum</span> <span class="o">=</span> <span class="n">LatticeSum</span><span class="p">(</span>
+                    <span class="n">RandomVector</span><span class="p">,</span> <span class="n">ListOfVelocities</span><span class="p">,</span> <span class="n">TensorRank</span><span class="p">)</span>
+                <span class="n">RowList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ShellSum</span><span class="p">)</span>
+
+            <span class="n">LeftHandSideList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RowList</span><span class="p">)</span>
+
+    <span class="n">LeftHandSideMatrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">LeftHandSideList</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">LeftHandSideMatrix</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FillRightHandSide"><a class="viewcode-back" href="../index.html#Functions.FillRightHandSide">[docs]</a><span class="k">def</span> <span class="nf">FillRightHandSide</span><span class="p">(</span><span class="n">MaxTensorRank</span><span class="p">,</span> <span class="n">ListOfTensorDimensions</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Construct the matrix :math:`D: D_{r\\mu} = \delta_{m_r \\mu}`</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        MaxTensorRank (int): Maximum tensor rank :math:`M`</span>
+<span class="sd">        ListOfTensorDimensions (list): List of the dimensions of tensor space</span>
+<span class="sd">            for tensors of rank :math:`2,4,\\dots, M`.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.ndarray: Matrix :math:`D`</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">RightHandSideList</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">NumberOfColumns</span> <span class="o">=</span> <span class="n">MaxTensorRank</span> <span class="o">//</span> <span class="mi">2</span>
+
+    <span class="c1"># k loop is loop over tensor ranks</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">MaxTensorRank</span> <span class="o">//</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="n">TensorRank</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">2</span>
+        <span class="n">LocalDimensionOfTensorSpace</span> <span class="o">=</span> <span class="n">ListOfTensorDimensions</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+
+        <span class="c1"># j loop is loop over random vectors</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">LocalDimensionOfTensorSpace</span><span class="p">):</span>
+            <span class="n">RowList</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="c1"># i loop is loop over c_s powers</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NumberOfColumns</span><span class="p">):</span>
+                <span class="n">CsPower</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span>
+                <span class="n">Element</span> <span class="o">=</span> <span class="mf">0.</span>
+                <span class="k">if</span> <span class="n">CsPower</span> <span class="o">==</span> <span class="n">TensorRank</span><span class="p">:</span>
+                    <span class="n">Element</span> <span class="o">=</span> <span class="mf">1.</span>
+
+                <span class="n">RowList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Element</span><span class="p">)</span>
+
+            <span class="n">RightHandSideList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RowList</span><span class="p">)</span>
+
+    <span class="n">RightHandSideMatrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">RightHandSideList</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">RightHandSideMatrix</span></div>
+
+
+<div class="viewcode-block" id="RatApprox"><a class="viewcode-back" href="../index.html#Functions.RatApprox">[docs]</a><span class="k">def</span> <span class="nf">RatApprox</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculates numerator and denominator for a floating point number x and</span>
+<span class="sd">    returns the output as a string.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x (float): Number to approximate as fraction.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: Approximate fraction as string</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TOL</span> <span class="o">=</span> <span class="mf">1.e-12</span>
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">TOL</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;0&quot;</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mf">0.1</span><span class="p">):</span>
+        <span class="n">LimitDenominator</span> <span class="o">=</span> <span class="mi">1000000</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">LimitDenominator</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="o">*</span> <span class="mi">1000000</span>
+
+    <span class="n">MyFraction</span> <span class="o">=</span> <span class="n">Fraction</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">limit_denominator</span><span class="p">(</span><span class="n">LimitDenominator</span><span class="p">)</span>
+    <span class="n">MyFraction</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">MyFraction</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">MyFraction</span></div>
+
+
+<div class="viewcode-block" id="EvaluateWeights"><a class="viewcode-back" href="../index.html#Functions.EvaluateWeights">[docs]</a><span class="k">def</span> <span class="nf">EvaluateWeights</span><span class="p">(</span><span class="n">W0List</span><span class="p">,</span> <span class="n">SolutionMatrix</span><span class="p">,</span> <span class="n">CsSquared</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate numerical weights from their polynomial coefficients</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        W0List (list): List of polynomial coefficients for zero shell</span>
+<span class="sd">        SolutionMatrix (numpy.ndarray): Solution matrix :math:`Q`</span>
+<span class="sd">        CsSquared (float): Speed of sound squared</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: List of numerical weights :math:`[w_0, w_1, \dots]`</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">ListOfWeightValues</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">MySum</span> <span class="o">=</span> <span class="mf">0.</span>
+    <span class="n">MyRange</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">W0List</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">MyRange</span><span class="p">):</span>
+        <span class="n">MySum</span> <span class="o">+=</span> <span class="n">W0List</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">CsSquared</span> <span class="o">**</span> <span class="n">i</span><span class="p">)</span>
+
+    <span class="n">ListOfWeightValues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MySum</span><span class="p">)</span>
+    <span class="n">NumberOfRows</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">SolutionMatrix</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">NumberOfColumns</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">SolutionMatrix</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NumberOfRows</span><span class="p">):</span>
+        <span class="n">MySum</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NumberOfColumns</span><span class="p">):</span>
+            <span class="n">MySum</span> <span class="o">+=</span> <span class="n">SolutionMatrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">CsSquared</span> <span class="o">**</span> <span class="p">(</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="n">ListOfWeightValues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MySum</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ListOfWeightValues</span></div>
+
+
+<div class="viewcode-block" id="IndicatorFunction"><a class="viewcode-back" href="../index.html#Functions.IndicatorFunction">[docs]</a><span class="k">def</span> <span class="nf">IndicatorFunction</span><span class="p">(</span><span class="n">W0List</span><span class="p">,</span> <span class="n">SolutionMatrix</span><span class="p">,</span> <span class="n">CsSquared</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Tests, whether solution yields all positive weights.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        W0List (list): List of polynomial coefficients for zero shell</span>
+<span class="sd">        SolutionMatrix (numpy.ndarray): Solution matrix :math:`Q`</span>
+<span class="sd">        CsSquared (float): Speed of sound squared</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bool: True if all weights positive, False otherwise</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">ListOfWeightValues</span> <span class="o">=</span> <span class="n">EvaluateWeights</span><span class="p">(</span><span class="n">W0List</span><span class="p">,</span> <span class="n">SolutionMatrix</span><span class="p">,</span> <span class="n">CsSquared</span><span class="p">)</span>
+    <span class="n">MyRange</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ListOfWeightValues</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">MyRange</span><span class="p">):</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">ListOfWeightValues</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">0.</span><span class="p">):</span>
+            <span class="k">return</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="mi">1</span></div>
+
+
+<div class="viewcode-block" id="FindRangeOfExistence"><a class="viewcode-back" href="../index.html#Functions.FindRangeOfExistence">[docs]</a><span class="k">def</span> <span class="nf">FindRangeOfExistence</span><span class="p">(</span><span class="n">W0List</span><span class="p">,</span> <span class="n">SolutionMatrix</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Make use of the function &quot;roots&quot; that needs the coefficients in reverse</span>
+<span class="sd">    order, in order to find the roots of the weight polynomials. If inbetween</span>
+<span class="sd">    two roots all weights are positive, add them to list CompressedRoots</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        W0List (list): List of polynomial coefficients for zero shell</span>
+<span class="sd">        SolutionMatrix (numpy.ndarray): Solution matrix :math:`Q`</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: List CompressedRoots of roots that form valid intervals for</span>
+<span class="sd">        the speed of sound.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TOL</span> <span class="o">=</span> <span class="mf">1.e-10</span>
+    <span class="n">TotalRoots</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">temp_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">my_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">W0List</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">my_length</span><span class="p">):</span>
+        <span class="n">temp_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">W0List</span><span class="p">[</span><span class="n">my_length</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">i</span><span class="p">])</span>
+
+    <span class="n">temp_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">temp_list</span><span class="p">)</span>
+    <span class="n">my_complex_roots</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roots</span><span class="p">(</span><span class="n">temp_array</span><span class="p">)</span>
+    <span class="n">NumberOfRoots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">my_complex_roots</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NumberOfRoots</span><span class="p">):</span>
+        <span class="n">current_root</span> <span class="o">=</span> <span class="n">my_complex_roots</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">current_root</span><span class="o">.</span><span class="n">imag</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">TOL</span> <span class="ow">and</span> <span class="n">current_root</span><span class="o">.</span><span class="n">real</span> <span class="o">&gt;</span> <span class="n">TOL</span><span class="p">:</span>
+            <span class="n">TotalRoots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_root</span><span class="o">.</span><span class="n">real</span><span class="p">)</span>
+
+    <span class="n">NumberOfRows</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">SolutionMatrix</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">NumberOfColumns</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">SolutionMatrix</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NumberOfRows</span><span class="p">):</span>
+        <span class="n">temp_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NumberOfColumns</span><span class="p">):</span>
+            <span class="n">temp_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SolutionMatrix</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">NumberOfColumns</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">i</span><span class="p">])</span>
+
+        <span class="n">temp_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">temp_list</span><span class="p">)</span>
+        <span class="n">my_complex_roots</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roots</span><span class="p">(</span><span class="n">temp_array</span><span class="p">)</span>
+        <span class="n">NumberOfRoots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">my_complex_roots</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NumberOfRoots</span><span class="p">):</span>
+            <span class="n">current_root</span> <span class="o">=</span> <span class="n">my_complex_roots</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">current_root</span><span class="o">.</span><span class="n">imag</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">TOL</span> <span class="ow">and</span> <span class="n">current_root</span><span class="o">.</span><span class="n">real</span> <span class="o">&gt;</span> <span class="n">TOL</span><span class="p">:</span>
+                <span class="n">TotalRoots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_root</span><span class="o">.</span><span class="n">real</span><span class="p">)</span>
+
+    <span class="n">TotalRoots</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+    <span class="n">TotalNumberOfRoots</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">TotalRoots</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">TotalNumberOfRoots</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="n">DummyRoot</span> <span class="o">=</span> <span class="n">TotalRoots</span><span class="p">[</span><span class="n">TotalNumberOfRoots</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="mf">2.</span>
+    <span class="n">TotalRoots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">DummyRoot</span><span class="p">)</span>
+    <span class="n">TotalNumberOfRoots</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">CompressedRoots</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">CsSquared</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">TotalRoots</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">Oldtest</span> <span class="o">=</span> <span class="n">IndicatorFunction</span><span class="p">(</span><span class="n">W0List</span><span class="p">,</span> <span class="n">SolutionMatrix</span><span class="p">,</span> <span class="n">CsSquared</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">Oldtest</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">CompressedRoots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">0.</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">TotalNumberOfRoots</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">CsSquared</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">TotalRoots</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">TotalRoots</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">Test</span> <span class="o">=</span> <span class="n">IndicatorFunction</span><span class="p">(</span><span class="n">W0List</span><span class="p">,</span> <span class="n">SolutionMatrix</span><span class="p">,</span> <span class="n">CsSquared</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">Test</span> <span class="o">!=</span> <span class="n">Oldtest</span><span class="p">:</span>
+            <span class="n">CompressedRoots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TotalRoots</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+        <span class="n">Oldtest</span> <span class="o">=</span> <span class="n">Test</span>
+
+    <span class="k">return</span> <span class="n">CompressedRoots</span></div>
+
+
+<div class="viewcode-block" id="OutputRangeOfExistence"><a class="viewcode-back" href="../index.html#Functions.OutputRangeOfExistence">[docs]</a><span class="k">def</span> <span class="nf">OutputRangeOfExistence</span><span class="p">(</span><span class="n">CompressedRoots</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Screen output of the intervals of the speed of sound that yield all</span>
+<span class="sd">    positive weights.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        CompressedRoots (list): List of roots that form valid intervals for</span>
+<span class="sd">            the speed of sound.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        int: Number of valid intervals</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NumberOfPoints</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">CompressedRoots</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">NumberOfPoints</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;No interval of validity found!&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="k">if</span> <span class="n">NumberOfPoints</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;Interval of validity from </span><span class="si">%e</span><span class="s2"> to infinity&quot;</span> <span class="o">%</span> <span class="n">CompressedRoots</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">return</span> <span class="mi">1</span>
+
+    <span class="n">NumberOfIntervals</span> <span class="o">=</span> <span class="n">NumberOfPoints</span> <span class="o">//</span> <span class="mi">2</span>
+    <span class="n">Rest</span> <span class="o">=</span> <span class="n">NumberOfPoints</span> <span class="o">-</span> <span class="n">NumberOfIntervals</span> <span class="o">*</span> <span class="mi">2</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NumberOfIntervals</span><span class="p">):</span>
+        <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;Interval of validity </span><span class="si">%d</span><span class="s2"> : </span><span class="si">%e</span><span class="s2">, </span><span class="si">%e</span><span class="s2">&quot;</span> \
+                <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">CompressedRoots</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">i</span><span class="p">],</span> <span class="n">CompressedRoots</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]))</span>
+
+    <span class="k">if</span> <span class="n">Rest</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;Interval of validity </span><span class="si">%d</span><span class="s2"> : </span><span class="si">%e</span><span class="s2">, infinity&quot;</span> <span class="o">%</span> \
+            <span class="p">(</span><span class="n">NumberOfIntervals</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">CompressedRoots</span><span class="p">[</span><span class="n">NumberOfPoints</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]))</span>
+
+    <span class="k">return</span> <span class="n">NumberOfIntervals</span></div>
+
+
+<span class="k">def</span> <span class="nf">OutputMagicNumbers</span><span class="p">(</span><span class="n">CompressedRoots</span><span class="p">,</span> <span class="n">W0List</span><span class="p">,</span> <span class="n">SolutionMatrix</span><span class="p">):</span>
+    <span class="n">MyRange</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">CompressedRoots</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;Prints the valid intervals to the console and shows the reduced models</span>
+<span class="sd">    at the borders of the intervals.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        CompressedRoots (list): List of roots that form valid intervals for the</span>
+<span class="sd">        speed of sound.</span>
+<span class="sd">        W0List (list): List of polynomial coefficients for zero shell</span>
+<span class="sd">        SolutionMatrix (numpy.ndarray): Solution matrix :math:`Q`</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">MyRange</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">The limits of validity are:&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">MyRange</span><span class="p">):</span>
+        <span class="n">CsSquared</span> <span class="o">=</span> <span class="n">CompressedRoots</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">String</span> <span class="o">=</span> <span class="n">RatApprox</span><span class="p">(</span><span class="n">CsSquared</span><span class="p">)</span>
+        <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;  c_s^2 = </span><span class="si">%e</span><span class="s2"> = (possibly) </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">CsSquared</span><span class="p">,</span> <span class="n">String</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">MyRange</span><span class="p">):</span>
+        <span class="n">CsSquared</span> <span class="o">=</span> <span class="n">CompressedRoots</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Reduced model at c_s^2 = </span><span class="si">%e</span><span class="s2">:&quot;</span> <span class="o">%</span> <span class="n">CsSquared</span><span class="p">)</span>
+        <span class="n">ListOfWeightValues</span> <span class="o">=</span> <span class="n">EvaluateWeights</span><span class="p">(</span><span class="n">W0List</span><span class="p">,</span> <span class="n">SolutionMatrix</span><span class="p">,</span> <span class="n">CsSquared</span><span class="p">)</span>
+        <span class="n">WeightRange</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ListOfWeightValues</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">WeightRange</span><span class="p">):</span>
+            <span class="n">MyWeight</span> <span class="o">=</span> <span class="n">ListOfWeightValues</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+            <span class="n">String</span> <span class="o">=</span> <span class="n">RatApprox</span><span class="p">(</span><span class="n">MyWeight</span><span class="p">)</span>
+            <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;  w[</span><span class="si">%d</span><span class="s2">] = </span><span class="si">%e</span><span class="s2"> = (possibly) </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">MyWeight</span><span class="p">,</span> <span class="n">String</span><span class="p">))</span>
+
+    <span class="k">return</span>
+
+
+<div class="viewcode-block" id="Frexp10"><a class="viewcode-back" href="../index.html#Functions.Frexp10">[docs]</a><span class="k">def</span> <span class="nf">Frexp10</span><span class="p">(</span><span class="n">Float</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns exponent and mantissa in base 10</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        Float (float): Original number</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: ``(Mantissa, Exponent)``</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">Float</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="p">(</span><span class="n">Sign</span><span class="p">,</span> <span class="n">Digits</span><span class="p">,</span> <span class="n">Exponent</span><span class="p">)</span> <span class="o">=</span> <span class="n">Decimal</span><span class="p">(</span><span class="n">Float</span><span class="p">)</span><span class="o">.</span><span class="n">as_tuple</span><span class="p">()</span>
+    <span class="n">Exponent</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">Digits</span><span class="p">)</span> <span class="o">+</span> <span class="n">Exponent</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">Mantissa</span> <span class="o">=</span> <span class="n">Float</span><span class="o">/</span><span class="mi">10</span><span class="o">**</span><span class="n">Exponent</span>
+
+    <span class="k">assert</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">Mantissa</span> <span class="o">*</span> <span class="mi">10</span><span class="o">**</span><span class="n">Exponent</span> <span class="o">-</span> <span class="n">Float</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">10e-14</span><span class="p">)</span>
+    <span class="k">assert</span><span class="p">(</span><span class="mf">1.</span> <span class="o">&lt;=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Mantissa</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">10.</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">Mantissa</span><span class="p">,</span> <span class="n">Exponent</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Type"><a class="viewcode-back" href="../index.html#Functions.Type">[docs]</a><span class="k">def</span> <span class="nf">Type</span><span class="p">(</span><span class="n">Shell</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Method to determine typical velocity vector for Shell.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        Shell (list): List of velocity vectors, e.g. ``[[0,1],[1,0]]``</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: Typical velocity vector, e.g. ``(0,1)``</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">abs</span><span class="p">,</span> <span class="n">Shell</span><span class="p">[</span><span class="mi">0</span><span class="p">]))))</span></div>
+
+
+<div class="viewcode-block" id="WriteLatexNumber"><a class="viewcode-back" href="../index.html#Functions.WriteLatexNumber">[docs]</a><span class="k">def</span> <span class="nf">WriteLatexNumber</span><span class="p">(</span><span class="n">Value</span><span class="p">,</span> <span class="n">Outfile</span><span class="p">,</span> <span class="n">Precision</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span> <span class="n">Rational</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Write Value to ``Outfile`` in a Latex compatible way</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        Value (float): Value</span>
+<span class="sd">        Outfile: Output file</span>
+<span class="sd">        Precision (int): Number of digits</span>
+<span class="sd">        Rational (bool): Approximate numbers by fractions</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">Rational</span><span class="p">:</span>
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;$</span><span class="si">%10s</span><span class="s2">$&quot;</span> <span class="o">%</span> <span class="n">RatApprox</span><span class="p">(</span><span class="n">Value</span><span class="p">))</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">Value</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mi">14</span><span class="p">)):</span>
+            <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;$0$&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="n">Precision</span> <span class="o">+</span> <span class="mi">18</span><span class="p">)</span> <span class="o">*</span> <span class="s2">&quot; &quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Mantissa</span><span class="p">,</span> <span class="n">Exponent</span> <span class="o">=</span> <span class="n">Frexp10</span><span class="p">(</span><span class="n">Value</span><span class="p">)</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">Exponent</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;$</span><span class="si">%*.*f</span><span class="s2">$               &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">Precision</span> <span class="o">+</span> <span class="mi">4</span><span class="p">,</span>
+                    <span class="n">Precision</span><span class="p">,</span> <span class="n">Value</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;$</span><span class="si">%*.*f</span><span class="s2"> </span><span class="se">\\</span><span class="s2">times 10^{</span><span class="si">%d</span><span class="s2">}$&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">Precision</span> <span class="o">+</span> <span class="mi">4</span><span class="p">,</span> <span class="n">Precision</span><span class="p">,</span>
+                    <span class="n">Mantissa</span><span class="p">,</span> <span class="n">Exponent</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="WriteLatexTables"><a class="viewcode-back" href="../index.html#Functions.WriteLatexTables">[docs]</a><span class="k">def</span> <span class="nf">WriteLatexTables</span><span class="p">(</span><span class="n">CompressedRoots</span><span class="p">,</span> <span class="n">W0List</span><span class="p">,</span> <span class="n">SolutionMatrix</span><span class="p">,</span> <span class="n">GrandTotalList</span><span class="p">,</span>
+        <span class="n">MaxTensorRank</span><span class="p">,</span> <span class="n">Precision</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span> <span class="n">Rational</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">Filename</span><span class="o">=</span><span class="s2">&quot;latex_tables.tex&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Write unique solution to a file in form of a latex table. This will</span>
+<span class="sd">    append to any existing file.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        CompressedRoots (list): List of roots that form the valid intervals for</span>
+<span class="sd">            the speed of sound</span>
+<span class="sd">        W0List (list): List of polynomial coefficients for zero shell</span>
+<span class="sd">        SolutionMatrix (numpy.ndarray): Solution matrix :math:`Q`</span>
+<span class="sd">        GrandTotalList (list): List of lists. The :math:`s`-th sublist</span>
+<span class="sd">            contains all velocity vectors of shell :math:`s`.</span>
+<span class="sd">        MaxTensorRank (int): Maximum tensor rank :math:`M`</span>
+<span class="sd">        Precision (int): Number of digits</span>
+<span class="sd">        Rational (bool): Approximate numbers by fractions</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">Filename</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s2">&quot;-y&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">YesNo</span><span class="p">(</span><span class="s2">&quot;Latex table will be appended to the file &quot;</span><span class="o">+</span><span class="n">Filename</span><span class="o">+</span>
+                <span class="s2">&quot;. Is this OK? [Yn]&quot;</span><span class="p">):</span>
+                <span class="k">return</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">Filename</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">Outfile</span><span class="p">:</span>
+        <span class="n">MyRange</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">CompressedRoots</span><span class="p">)</span>
+        <span class="n">SpacialDimension</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">GrandTotalList</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="c1"># include zero shell</span>
+        <span class="n">GrandTotalList</span> <span class="o">=</span> <span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">SpacialDimension</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)]]</span> <span class="o">+</span> <span class="n">GrandTotalList</span>
+        <span class="n">TotalNumberOfVelocities</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">Shell</span> <span class="ow">in</span> <span class="n">GrandTotalList</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">Velocity</span> <span class="ow">in</span> <span class="n">Shell</span><span class="p">:</span>
+                <span class="n">TotalNumberOfVelocities</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">MyRange</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">documentclass</span><span class="si">{article}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">begin</span><span class="si">{document}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">begin</span><span class="si">{table}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  </span><span class="se">\\</span><span class="s2">begin</span><span class="si">{tabular}</span><span class="s2">{| c | c |&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">MyRange</span><span class="p">):</span>
+            <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; c |&quot;</span><span class="p">)</span>
+
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;    </span><span class="se">\\</span><span class="s2">hline</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;    shell &amp; typical&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">MyRange</span><span class="p">):</span>
+            <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; &amp; weight at $c_</span><span class="se">\\</span><span class="s2">mathrm</span><span class="si">{s}</span><span class="s2">^2 = $&quot;</span><span class="p">)</span>
+
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\\\\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;    size  &amp; vector  &quot;</span><span class="p">)</span>
+
+        <span class="c1"># print c_s^2 at interval boundary</span>
+        <span class="k">for</span> <span class="n">CsSquared</span> <span class="ow">in</span> <span class="n">CompressedRoots</span><span class="p">:</span>
+            <span class="n">Mantissa</span><span class="p">,</span> <span class="n">Exponent</span> <span class="o">=</span> <span class="n">Frexp10</span><span class="p">(</span><span class="n">CsSquared</span><span class="p">)</span>
+
+            <span class="n">Value</span> <span class="o">=</span> <span class="n">CsSquared</span>
+            <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&amp; &quot;</span><span class="p">)</span>
+            <span class="n">WriteLatexNumber</span><span class="p">(</span><span class="n">Value</span><span class="p">,</span> <span class="n">Outfile</span><span class="p">,</span> <span class="n">Precision</span><span class="p">,</span> <span class="n">Rational</span><span class="p">)</span>
+            <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\\\\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;    \hline</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">WeightLists</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">CsSquared</span> <span class="ow">in</span> <span class="n">CompressedRoots</span><span class="p">:</span>
+            <span class="n">WeightLists</span> <span class="o">+=</span> <span class="p">[</span><span class="n">EvaluateWeights</span><span class="p">(</span><span class="n">W0List</span><span class="p">,</span> <span class="n">SolutionMatrix</span><span class="p">,</span> <span class="n">CsSquared</span><span class="p">)]</span>
+
+        <span class="k">for</span> <span class="n">i_shell</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">GrandTotalList</span><span class="p">)):</span>
+            <span class="n">Shell</span> <span class="o">=</span> <span class="n">GrandTotalList</span><span class="p">[</span><span class="n">i_shell</span><span class="p">]</span>
+            <span class="c1"># write number of velocities in shell</span>
+            <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;    </span><span class="si">%3d</span><span class="s2"> &amp; (&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">Shell</span><span class="p">))</span>
+
+            <span class="c1"># write type of shell</span>
+            <span class="k">for</span> <span class="n">i_type</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">SpacialDimension</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">i_type</span> <span class="o">&lt;</span> <span class="n">SpacialDimension</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">, &quot;</span> <span class="o">%</span> <span class="n">Type</span><span class="p">(</span><span class="n">Shell</span><span class="p">)[</span><span class="n">i_type</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">) &quot;</span> <span class="o">%</span> <span class="n">Type</span><span class="p">(</span><span class="n">Shell</span><span class="p">)[</span><span class="n">i_type</span><span class="p">])</span>
+
+            <span class="c1"># write weights at interval edges</span>
+            <span class="k">for</span> <span class="n">i_cs</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">MyRange</span><span class="p">):</span>
+                <span class="n">Value</span> <span class="o">=</span> <span class="n">WeightLists</span><span class="p">[</span><span class="n">i_cs</span><span class="p">][</span><span class="n">i_shell</span><span class="p">]</span>
+                <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&amp; &quot;</span><span class="p">)</span>
+                <span class="n">WriteLatexNumber</span><span class="p">(</span><span class="n">Value</span><span class="p">,</span> <span class="n">Outfile</span><span class="p">,</span> <span class="n">Precision</span><span class="p">,</span> <span class="n">Rational</span><span class="p">)</span>
+                <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+
+
+            <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\\\</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;    \hline</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  </span><span class="se">\\</span><span class="s2">end</span><span class="si">{tabular}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  </span><span class="se">\\</span><span class="s2">caption{Properties of a </span><span class="si">%d</span><span class="s2">--speed model in </span><span class="si">%d</span><span class="s2"> dimensions that is isotropic up to tensor rank </span><span class="si">%d</span><span class="s2">.}</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">TotalNumberOfVelocities</span><span class="p">,</span> <span class="n">SpacialDimension</span><span class="p">,</span> <span class="n">MaxTensorRank</span><span class="p">))</span>
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  </span><span class="se">\\</span><span class="s2">label{tab:weights_d</span><span class="si">%d</span><span class="s2">m</span><span class="si">%d</span><span class="s2">v</span><span class="si">%d</span><span class="s2">}</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">SpacialDimension</span><span class="p">,</span>
+            <span class="n">MaxTensorRank</span><span class="p">,</span> <span class="n">TotalNumberOfVelocities</span><span class="p">))</span>
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">end</span><span class="si">{table}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Write Coefficients</span>
+        <span class="p">(</span><span class="n">Rows</span><span class="p">,</span> <span class="n">Columns</span><span class="p">)</span> <span class="o">=</span> <span class="n">SolutionMatrix</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">ZerothColumn</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">Rows</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">begin</span><span class="si">{table}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  </span><span class="se">\\</span><span class="s2">begin</span><span class="si">{tabular}</span><span class="s2">{| c | c |&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i_col</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Columns</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; c |&quot;</span><span class="p">)</span>
+
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;}&quot;</span><span class="p">)</span>
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\\\\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;    </span><span class="se">\\</span><span class="s2">hline</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;    shell &amp; typical  &quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i_col</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Columns</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&amp; coefficient of    &quot;</span><span class="p">)</span>
+
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\\\\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;    size  &amp; vector  &quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i_col</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Columns</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; &amp; $c_\mathrm</span><span class="si">{s}</span><span class="s2">^</span><span class="si">%d</span><span class="s2">$ &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">i_col</span><span class="p">))</span>
+
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\\\\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;    </span><span class="se">\\</span><span class="s2">hline</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i_shell</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">GrandTotalList</span><span class="p">)):</span>
+            <span class="n">Shell</span> <span class="o">=</span> <span class="n">GrandTotalList</span><span class="p">[</span><span class="n">i_shell</span><span class="p">]</span>
+            <span class="c1"># write number of velocities in shell</span>
+            <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;    </span><span class="si">%3d</span><span class="s2"> &amp; (&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">Shell</span><span class="p">))</span>
+
+            <span class="c1"># write type of shell</span>
+            <span class="k">for</span> <span class="n">i_type</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">SpacialDimension</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">i_type</span> <span class="o">&lt;</span> <span class="n">SpacialDimension</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">, &quot;</span> <span class="o">%</span> <span class="n">Type</span><span class="p">(</span><span class="n">Shell</span><span class="p">)[</span><span class="n">i_type</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">) &quot;</span> <span class="o">%</span> <span class="n">Type</span><span class="p">(</span><span class="n">Shell</span><span class="p">)[</span><span class="n">i_type</span><span class="p">])</span>
+
+            <span class="c1"># write zeroth shell</span>
+            <span class="k">if</span> <span class="n">i_shell</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&amp; 1 &quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i_col</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Columns</span><span class="p">):</span>
+                    <span class="n">Value</span> <span class="o">=</span> <span class="n">W0List</span><span class="p">[</span><span class="n">i_col</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                    <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&amp; &quot;</span><span class="p">)</span>
+                    <span class="n">WriteLatexNumber</span><span class="p">(</span><span class="n">Value</span><span class="p">,</span> <span class="n">Outfile</span><span class="p">,</span> <span class="n">Precision</span><span class="p">,</span> <span class="n">Rational</span><span class="p">)</span>
+                    <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+            <span class="c1"># write remaining shells</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># write zeroth coefficient</span>
+                <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&amp; 0 &quot;</span> <span class="o">%</span> <span class="n">ZerothColumn</span><span class="p">[</span><span class="n">i_shell</span><span class="p">])</span>
+                <span class="c1"># write other coefficients</span>
+                <span class="k">for</span> <span class="n">i_col</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Columns</span><span class="p">):</span>
+                    <span class="n">Value</span> <span class="o">=</span> <span class="n">SolutionMatrix</span><span class="p">[</span><span class="n">i_shell</span> <span class="o">-</span> <span class="mi">1</span><span class="p">][</span><span class="n">i_col</span><span class="p">]</span>
+                    <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&amp; &quot;</span><span class="p">)</span>
+                    <span class="n">WriteLatexNumber</span><span class="p">(</span><span class="n">Value</span><span class="p">,</span> <span class="n">Outfile</span><span class="p">,</span> <span class="n">Precision</span><span class="p">,</span> <span class="n">Rational</span><span class="p">)</span>
+                    <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+
+            <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\\\\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;    \hline</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  </span><span class="se">\\</span><span class="s2">end</span><span class="si">{tabular}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  </span><span class="se">\\</span><span class="s2">caption{Coefficients of a </span><span class="si">%d</span><span class="s2">--speed model in </span><span class="si">%d</span><span class="s2"> dimensions that is isotropic up to tensor rank </span><span class="si">%d</span><span class="s2">.}</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">TotalNumberOfVelocities</span><span class="p">,</span> <span class="n">SpacialDimension</span><span class="p">,</span> <span class="n">MaxTensorRank</span><span class="p">))</span>
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  </span><span class="se">\\</span><span class="s2">label{tab:coefficients_d</span><span class="si">%d</span><span class="s2">m</span><span class="si">%d</span><span class="s2">v</span><span class="si">%d</span><span class="s2">}</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span>
+                <span class="p">(</span><span class="n">SpacialDimension</span><span class="p">,</span> <span class="n">MaxTensorRank</span><span class="p">,</span> <span class="n">TotalNumberOfVelocities</span><span class="p">))</span>
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">end</span><span class="si">{table}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">Outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">end</span><span class="si">{document}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span></div>
+
+
+<div class="viewcode-block" id="EnterWeights"><a class="viewcode-back" href="../index.html#Functions.EnterWeights">[docs]</a><span class="k">def</span> <span class="nf">EnterWeights</span><span class="p">(</span><span class="n">TotalNumberOfShells</span><span class="p">,</span> <span class="n">i_par</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Gets vector of weights from user input</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        TotalNumberOfShells (int): Number of shells INCLUDING zero-shell</span>
+<span class="sd">        i_par (int): Solution vector index (parametric solutions are written as</span>
+<span class="sd">            :math:`\\vec{w} = \\vec{w}_0 + \\lambda_1 \\vec{w}_1 + \\lambda_2 \\vec{w}_2 + \\dots`)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.ndarray: Vector of weights</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">EchoError</span><span class="p">(</span><span class="s2">&quot;Please enter the weights w_</span><span class="si">%d</span><span class="s2">i:&quot;</span> <span class="o">%</span> <span class="n">i_par</span><span class="p">)</span>
+    <span class="n">WTemp</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i_shell</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">TotalNumberOfShells</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">Val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">input</span><span class="p">(</span><span class="s2">&quot;  w_</span><span class="si">%d%d</span><span class="s2"> = &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i_par</span><span class="p">,</span> <span class="n">i_shell</span><span class="p">)))</span>
+        <span class="n">WTemp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Val</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">WTemp</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TestSolution"><a class="viewcode-back" href="../index.html#Functions.TestSolution">[docs]</a><span class="k">def</span> <span class="nf">TestSolution</span><span class="p">(</span><span class="n">GrandTotalList</span><span class="p">,</span> <span class="n">MaxTensorRank</span><span class="p">,</span> <span class="n">SpacialDimension</span><span class="p">,</span>
+        <span class="n">ListOfTensorDimensions</span><span class="p">,</span> <span class="n">Solution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Test validity of the equation :math:`A.w = b` for given weights w and</span>
+<span class="sd">    speed of sound :math:`c_s^2`.</span>
+<span class="sd">    For this the numpy routine numpy.allclose() is used. A solution is deemed</span>
+<span class="sd">    valid, if :math:`|A\\vec{w} - b| \\leq (\mathrm{atol} + \mathrm{rtol} |A \\vec{w}|`).</span>
+
+<span class="sd">    The weights can be given as a linear parametric equation</span>
+<span class="sd">    :math:`\\vec{w} = \\vec{w}_0 + \lambda_1 \\vec{w}_1 + \lambda_2 \\vec{w}_2 + \\dots`</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        GrandTotalList (list): List of lists. The :math:`s`-th sublist</span>
+<span class="sd">            contains all velocity vectors of shell :math:`s`.</span>
+<span class="sd">        MaxTensorRank (int): Maximum tensor rank :math:`M`</span>
+<span class="sd">        SpacialDimension (int): SpacialDimension</span>
+<span class="sd">        ListOfTensorDimensions (list): List of the dimensions of tensor space</span>
+<span class="sd">            for tensors of rank :math:`2,4,\\dots, M`.</span>
+<span class="sd">        Solution (list): Solution that is to be tested in the form</span>
+<span class="sd">            ``[CsSquared, [[w_00, w_01,...], [[w_10, w_11, ...], ...]``</span>
+<span class="sd">            If None is given, the user is prompted to enter a solution by hand.</span>
+<span class="sd">        atol (float): Absolute tolerance (parameter for numpy.allclose())</span>
+<span class="sd">        rtol (float): Relative tolerance (parameter for numpy.allclose())</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        int: 0 if solution is valid, otherwise 1</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">ShellSizes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">Shell</span><span class="p">)</span> <span class="k">for</span> <span class="n">Shell</span> <span class="ow">in</span> <span class="n">GrandTotalList</span><span class="p">])</span>
+    <span class="n">TotalNumberOfShells</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">GrandTotalList</span><span class="p">)</span> <span class="c1"># NOT including zero shell!</span>
+
+    <span class="c1"># Type solution by hand</span>
+    <span class="k">if</span> <span class="n">Solution</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Input speed of sound</span>
+        <span class="n">EchoError</span><span class="p">(</span><span class="s2">&quot;Please enter the speed of sound squared: &quot;</span><span class="p">)</span>
+        <span class="n">CsSquared</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">input</span><span class="p">(</span><span class="s2">&quot;c_s^2 = &quot;</span><span class="p">))</span>
+        <span class="k">assert</span><span class="p">(</span><span class="n">CsSquared</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">W</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Input w_0</span>
+        <span class="n">i_par</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">WTemp</span> <span class="o">=</span> <span class="n">EnterWeights</span><span class="p">(</span><span class="n">TotalNumberOfShells</span><span class="p">,</span> <span class="n">i_par</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">WTemp</span><span class="p">,</span> <span class="n">ShellSizes</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.</span> <span class="o">&gt;=</span> <span class="n">atol</span><span class="p">:</span>
+            <span class="n">EchoError</span><span class="p">(</span><span class="s2">&quot;ERROR: Weights do not satisfy normalization condition!&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">1</span>
+        <span class="n">W</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">WTemp</span><span class="p">)</span>
+
+        <span class="c1"># Input w_i, i &gt; 0</span>
+        <span class="k">while</span> <span class="n">YesNo</span><span class="p">(</span><span class="s2">&quot;Do you want to add further solution vectors for a parametric solution? [Yn]&quot;</span><span class="p">):</span>
+            <span class="n">i_par</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">WTemp</span> <span class="o">=</span> <span class="n">EnterWeights</span><span class="p">(</span><span class="n">TotalNumberOfShells</span><span class="p">,</span> <span class="n">i_par</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">WTemp</span><span class="p">,</span> <span class="n">ShellSizes</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">atol</span><span class="p">:</span>
+                <span class="n">EchoError</span><span class="p">(</span><span class="s2">&quot;ERROR: Weights do not satisfy normalization condition!&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="mi">1</span>
+            <span class="n">W</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">WTemp</span><span class="p">)</span>
+
+        <span class="n">Solution</span> <span class="o">=</span> <span class="p">[</span><span class="n">CsSquared</span><span class="p">,</span> <span class="n">W</span><span class="p">]</span>
+        <span class="n">Echo</span><span class="p">()</span>
+
+    <span class="n">LeftHandSideMatrix</span> <span class="o">=</span> <span class="n">FillLeftHandSide</span><span class="p">(</span>
+        <span class="n">SpacialDimension</span><span class="p">,</span> <span class="n">MaxTensorRank</span><span class="p">,</span> <span class="n">ListOfTensorDimensions</span><span class="p">,</span>
+        <span class="n">TotalNumberOfShells</span><span class="p">,</span> <span class="n">GrandTotalList</span><span class="p">)</span>
+
+    <span class="n">CsSquared</span> <span class="o">=</span> <span class="n">Solution</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">W</span> <span class="o">=</span> <span class="n">Solution</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">assert</span><span class="p">(</span><span class="n">CsSquared</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># set A</span>
+    <span class="n">n_row</span> <span class="o">=</span> <span class="n">LeftHandSideMatrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">n_col</span> <span class="o">=</span> <span class="n">LeftHandSideMatrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># pad A so that normalization condition for the weights is included</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_row</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_col</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">A</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">ShellSizes</span>
+    <span class="n">A</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">LeftHandSideMatrix</span>
+
+    <span class="c1"># set B</span>
+    <span class="n">B</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">MaxTensorRank</span> <span class="o">//</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="c1"># TensorRank = 2 * k + 2</span>
+        <span class="n">LocalDimensionOfTensorSpace</span> <span class="o">=</span> <span class="n">ListOfTensorDimensions</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+
+        <span class="c1"># j loop is loop over random vectors</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">LocalDimensionOfTensorSpace</span><span class="p">):</span>
+            <span class="n">B</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CsSquared</span><span class="o">**</span><span class="p">(</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+
+    <span class="n">B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">B</span><span class="p">)</span>
+
+    <span class="c1"># compare</span>
+    <span class="k">for</span> <span class="n">i_W</span><span class="p">,</span> <span class="n">W</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">Solution</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="k">assert</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">W</span><span class="p">)</span> <span class="o">==</span> <span class="n">TotalNumberOfShells</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">i_W</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">C</span> <span class="o">=</span> <span class="n">B</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">B</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="n">A</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">W</span><span class="p">),</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">):</span>
+            <span class="n">EchoError</span><span class="p">(</span><span class="s2">&quot;The given solution does NOT solve the system.&quot;</span><span class="p">)</span>
+            <span class="n">EchoError</span><span class="p">(</span><span class="s2">&quot;Solution vector </span><span class="si">%d</span><span class="s2"> is not compatible.&quot;</span> <span class="o">%</span> <span class="n">i_W</span><span class="p">)</span>
+            <span class="n">EchoError</span><span class="p">(</span><span class="s1">&#39;A.w</span><span class="si">%s</span><span class="s1"> = &#39;</span> <span class="o">%</span> <span class="s1">&#39;-b&#39;</span> <span class="k">if</span> <span class="n">i_W</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">EchoError</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">W</span><span class="p">)</span> <span class="o">-</span> <span class="n">C</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">1</span>
+
+    <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;The given solution solves the system.&quot;</span><span class="p">)</span>
+    <span class="n">Echo</span><span class="p">(</span><span class="s1">&#39;A.w - b = &#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">W</span><span class="p">)</span> <span class="o">-</span> <span class="n">C</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+
+<span class="c1"># Subshell analysis</span>
+<div class="viewcode-block" id="ToMatrix"><a class="viewcode-back" href="../index.html#Functions.ToMatrix">[docs]</a><span class="k">def</span> <span class="nf">ToMatrix</span><span class="p">(</span><span class="n">Array</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert an array of unit vector representations to proper matrix.</span>
+<span class="sd">    For example</span>
+<span class="sd">    ``[0,2,1]`` will be converted to </span>
+<span class="sd">    ``[[1,0,0], [0,0,1], [0,1,0]]``.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        Array (numpy.ndarray): Array of integers</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        numpy.ndarray: Transformation matrix</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">Dim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">Array</span><span class="p">)</span>
+    <span class="n">Matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">Dim</span><span class="p">,</span> <span class="n">Dim</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">Column</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Dim</span><span class="p">):</span>
+        <span class="n">Row</span> <span class="o">=</span> <span class="n">Array</span><span class="p">[</span><span class="n">Column</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">Matrix</span><span class="p">[</span><span class="n">Row</span><span class="p">][</span><span class="n">Column</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">Matrix</span></div>
+
+
+<div class="viewcode-block" id="GetGroup"><a class="viewcode-back" href="../index.html#Functions.GetGroup">[docs]</a><span class="k">def</span> <span class="nf">GetGroup</span><span class="p">(</span><span class="n">SpacialDimension</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute the cubic group. Each transformation matrix in the group is made</span>
+<span class="sd">    up of 2d unit vectors of type :math:`(0\\dots0,+-1,0\\dots0)`.</span>
+<span class="sd">    We will identify a vector with i-th component 1 and 0 elsewhere by the</span>
+<span class="sd">    number :math:`i`. A vector with :math:`i`-th component -1 and 0 elsewhere</span>
+<span class="sd">    is identified by the number :math:`-i`.</span>
+<span class="sd">    The cubic group then consists of all orthogonal matrices, with columns</span>
+<span class="sd">    made up of the above unit vectors.</span>
+<span class="sd">    In general there are :math:`d! 2^d` such transformations.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        SpacialDimension (int): Spacial dimension</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: A list of all transformation matrices in the cubic group</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;Computing cubic group in </span><span class="si">%d</span><span class="s2"> dimensions...&quot;</span> <span class="o">%</span> <span class="n">SpacialDimension</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">SpacialDimension</span> <span class="o">&gt;</span> <span class="mi">7</span><span class="p">:</span>
+        <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;This might take a while...&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Build list of all unit vectors</span>
+    <span class="n">UnitVectors</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">SpacialDimension</span><span class="p">)]</span>
+
+    <span class="n">UVCombinations</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">permutations</span><span class="p">(</span><span class="n">UnitVectors</span><span class="p">,</span> <span class="n">SpacialDimension</span><span class="p">)</span>
+    <span class="c1"># the possible combinations of signs are equivalent to the binary</span>
+    <span class="c1"># representations of the numbers 0 to (SpacialDimension - 1).</span>
+    <span class="n">SignCombinations</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="nb">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">SpacialDimension</span><span class="p">)</span>
+    <span class="n">Format</span><span class="o">=</span><span class="s2">&quot;0&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">SpacialDimension</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;b&quot;</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">SpacialDimension</span><span class="p">)):</span>
+        <span class="n">Binary</span> <span class="o">=</span> <span class="nb">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">Format</span><span class="p">)</span>
+        <span class="n">Combination</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="nb">int</span><span class="p">(</span><span class="n">Binary</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">SpacialDimension</span><span class="p">))</span>
+        <span class="n">SignCombinations</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">Combination</span>
+
+    <span class="c1"># apply all possible sign combinations</span>
+    <span class="n">Group</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">CombinationUV</span> <span class="ow">in</span> <span class="n">UVCombinations</span><span class="p">:</span>
+        <span class="n">Matrix</span> <span class="o">=</span> <span class="n">ToMatrix</span><span class="p">(</span><span class="n">CombinationUV</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">CombinationS</span> <span class="ow">in</span> <span class="n">SignCombinations</span><span class="p">:</span>
+            <span class="n">Group</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">CombinationS</span><span class="p">,</span> <span class="n">Matrix</span><span class="p">))</span>
+
+    <span class="n">NumberOfTransformations</span> <span class="o">=</span> \
+        <span class="n">math</span><span class="o">.</span><span class="n">factorial</span><span class="p">(</span><span class="n">SpacialDimension</span><span class="p">)</span> <span class="o">*</span> <span class="nb">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">SpacialDimension</span><span class="p">)</span>
+    <span class="k">assert</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Group</span><span class="p">)</span> <span class="o">==</span> <span class="n">NumberOfTransformations</span><span class="p">)</span>
+    <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;The group consists of </span><span class="si">%d</span><span class="s2"> transformations in total.&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">Group</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">Group</span></div>
+
+
+<div class="viewcode-block" id="Contains"><a class="viewcode-back" href="../index.html#Functions.Contains">[docs]</a><span class="k">def</span> <span class="nf">Contains</span><span class="p">(</span><span class="n">Array</span><span class="p">,</span> <span class="n">List</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Checks whether given numpy array is contained in list. The all()</span>
+<span class="sd">    function is defined on numpy arrays and evaluates True if all elements are</span>
+<span class="sd">    True.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        Array (numpy.ndarray): numpy array</span>
+<span class="sd">        List (list): List of numpy arrays</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bool: True if Array is contained in List, False otherwise.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="nb">any</span><span class="p">((</span><span class="n">Array</span> <span class="o">==</span> <span class="n">X</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="k">for</span> <span class="n">X</span> <span class="ow">in</span> <span class="n">List</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ContainsInSublist"><a class="viewcode-back" href="../index.html#Functions.ContainsInSublist">[docs]</a><span class="k">def</span> <span class="nf">ContainsInSublist</span><span class="p">(</span><span class="n">Array</span><span class="p">,</span> <span class="n">ListOfLists</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Checks whether given numpy array is contained in a list of lists.</span>
+<span class="sd">    The all() function is defined on numpy arrays and evaluates True if all</span>
+<span class="sd">    elements are True.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        Array (numpy.ndarray): numpy array</span>
+<span class="sd">        List (list): List of Lists of numpy arrays</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bool: True if Array is contained in ListOfLists, False otherwise.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">Contains</span><span class="p">(</span><span class="n">Array</span><span class="p">,</span> <span class="n">List</span><span class="p">)</span> <span class="k">for</span> <span class="n">List</span> <span class="ow">in</span> <span class="n">ListOfLists</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ComputeSubshell"><a class="viewcode-back" href="../index.html#Functions.ComputeSubshell">[docs]</a><span class="k">def</span> <span class="nf">ComputeSubshell</span><span class="p">(</span><span class="n">Velocity</span><span class="p">,</span> <span class="n">Group</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute the (sub)shell that is being spanned by Velocity wrt. Group.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        Velocity (numpy.ndarray): Velocity vector</span>
+<span class="sd">        Group (list): List of transformation matrices that form the cubic group</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: List of velocity vectors that form the velocity shell spanned by</span>
+<span class="sd">            Group</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">Subshell</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Group</span><span class="p">)):</span>
+        <span class="n">New</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">Group</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Velocity</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">Contains</span><span class="p">(</span><span class="n">New</span><span class="p">,</span> <span class="n">Subshell</span><span class="p">):</span>
+            <span class="n">Subshell</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">New</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">Subshell</span></div>
+
+
+<div class="viewcode-block" id="GetListOfSubshells"><a class="viewcode-back" href="../index.html#Functions.GetListOfSubshells">[docs]</a><span class="k">def</span> <span class="nf">GetListOfSubshells</span><span class="p">(</span><span class="n">Shell</span><span class="p">,</span> <span class="n">Group</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Applies all group transformations to all velocities in shell and returns</span>
+<span class="sd">    all distinct shells that result.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        Shell (list): List of velocity vectors</span>
+<span class="sd">        Group (list): List of transformation matrices that form the cubic group</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: List of distinct velocity shells</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">ListOfSubshells</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">Velocity</span> <span class="ow">in</span> <span class="n">Shell</span><span class="p">:</span>
+        <span class="n">Subshell</span> <span class="o">=</span> <span class="n">ComputeSubshell</span><span class="p">(</span><span class="n">Velocity</span><span class="p">,</span> <span class="n">Group</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ContainsInSublist</span><span class="p">(</span><span class="n">Velocity</span><span class="p">,</span> <span class="n">ListOfSubshells</span><span class="p">):</span>
+            <span class="n">ListOfSubshells</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Subshell</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ListOfSubshells</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">LBweights</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Burkhard Dünweg, Dominic Spiller.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
