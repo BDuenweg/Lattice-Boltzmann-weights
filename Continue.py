@@ -1,4 +1,11 @@
-#!/usr/bin/python2.7
+"""Contains routines to treat the case of infinitely many solutions.
+
+Exit codes\:
+    - 0\:   No optimal solution found
+    - 1\:   Optimal solution found
+    - 127\: General error
+
+"""
 
 import argparse
 import sys
@@ -8,7 +15,14 @@ from Functions import YesNo, Echo, EchoError
 
 
 def ParseArguments():
-    parser = argparse.ArgumentParser(description="""Find optimal weights for 
+    """Function to parse command line options.
+
+    Returns:
+        dict: Dictionary of command line options
+
+    """
+
+    parser = argparse.ArgumentParser(description="""Find optimal weights for
 an underdetermined problem.\nYou can either supply the input data interactively
 or by the following command line arguments:""")
 
@@ -30,8 +44,25 @@ can use -1 to refer to the last shell etc.""")
 
 
 def Solve(V, ReducedRhs, NumberOfRows, ShellSizes, CsSquared, MinimizeWeights):
-    """Solve the problem via convex optimization. 
-    See: https://www.cvxpy.org/"""
+    """Solve the minimization problem via convex optimization.
+    See: https://www.cvxpy.org/
+
+    Args:
+        V (numpy.ndarray): Orthogonal matrix that results from the singular
+            value decomposition A=U.S.V
+        ReducedRhs (numpy.ndarray): Pruned matrix that has the inverse singular
+            values on the diagonal.
+        NumberOfRows (int): Number of rows of A
+        ShellSizes (list): List of shell sizes (int) NOT including zero shell
+        CsSquared (float): Speed of sound squared
+        MinimizeWeights (list): List of indices of the weights that shall be
+            minimized in the procedure
+
+    Returns:
+        cvxpy.problems.problem.Problem: cvxpy problem. Problem.status indicates
+            whether or not the problem could be solved.
+
+    """
 
     TotalNumberOfShells = len(ShellSizes) # without zero shell
 
@@ -88,7 +119,7 @@ provide a single value for c_s^2:\n""")
         Range = Arguments['c']
 
     if Arguments['m'] is None:
-        Echo("""Please enter the indices of the the weights that you want to
+        Echo("""Please enter the indices of the weights that you want to
 be minimized in the format 1 2 3. You can use -1 to refer to the last shell
 etc.:\n""")
         MinimizeWeights = str(input())
@@ -125,6 +156,7 @@ etc.:\n""")
 
 
     # run for range of values
+    SolutionFound = False
     if len(Range) == 3:
         Echo("Using range = %s" % Range)
         Outfilename = "results.dat"
@@ -134,7 +166,7 @@ w_0 w_1 ... This will overwrite any file called %s that already exists."""
 
         Outfile = open(Outfilename, 'w')
         if not YesNo("Is this OK? [Yn]"):
-            Echo("""Aborting the procedure.""")
+            Echo("Aborting the procedure.")
             exit(127)
         if Range[0] > Range[1]:
             Echo("Invalid range %s" % Range)
@@ -144,9 +176,10 @@ w_0 w_1 ... This will overwrite any file called %s that already exists."""
                     CsSquared, MinimizeWeights)
             Solution = Problem.status == "optimal"
 
-            Echo("""  c_s^2 = %f: %s""" % (CsSquared, Problem.status))
+            Echo("  c_s^2 = %f: %s" % (CsSquared, Problem.status))
 
             if Solution:
+                SolutionFound = True
                 Outfile.write("%17.10e " % CsSquared)
                 for Weight in Problem.variables()[0].value:
                     Outfile.write("%17.10e " % Weight)
@@ -155,7 +188,7 @@ w_0 w_1 ... This will overwrite any file called %s that already exists."""
 
             CsSquared += Range[2]
         Outfile.close()
-        exit(0)
+        exit(SolutionFound)
 
     else:
         Echo("Invalid range %s" % Range)

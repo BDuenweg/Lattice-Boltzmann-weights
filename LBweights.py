@@ -1,28 +1,45 @@
+"""
+Calculate LB model vectors and weights for a simple
+cubic lattice of arbitrary dimension
+
+The method is described in D. Spiller's and B. Duenweg's paper
+"Semi-automatic construction of Lattice Boltzmann models"
+Therefore explanations in the code are not very detailed
+
+Exit codes\:
+    - 0\:   System has unique solution
+    - 1\:   System has no solution
+    - 2\:   System is underdetermined and requires further examination
+    - 3\:   System has unique solution but there is no physically valid range of
+      existence
+    - 127\: General error
+
+"""
+
 import sys
 import random
 import numpy as np
 from Functions import *
-#
-# Calculate LB model vectors and weights for a simple
-# cubic lattice of arbitrary dimension
-#
-# The method is described in D. Spiller's and B. Duenweg's paper
-# "Semi-automatic construction of Lattice Boltzmann models"
-# Therefore explanations in the code are not very detailed
-#
-# Exit codes:
-# 0:   System has unique solution
-# 1:   System has no solution
-# 2:   System is underdetermined and requires further examination
-# 3:   System has unique solution but there is no physically valid range of
-#      existence
-# 127: General error
-#
 
-# Gather input data 
-def GetInputData(CustomArguments=None, ListOfThrowawayStrings=None):
+
+# Gather input data
+def GetInputData(Arguments=None, ListOfThrowawayStrings=None):
     """Parse command line arguments. You can optionally give a list with the
-subshells that you want to discard."""
+    subshells that you want to discard.
+
+    Args:
+        Arguments (dict): Dictionary of command line arguments. This is
+            useful, if the function is used in an automated script that does
+            not rely on user input.
+        ListOfThrowawayStrings (list): List of indices of the subshells to be
+            discarded. This is useful, if the function is used in an automated
+            script that does not rely on user input.
+
+    Returns:
+        tuple: Tuple ``(SpacialDimension, MaxTensorRank,
+        ListOfTensorDimensions, GrandTotalList, Arguments)``
+
+    """
 
     if CustomArguments is None:
         Arguments = ParseArguments()
@@ -42,7 +59,7 @@ shall live. Please note that the model will live on a simple cubic lattice.""")
 
     Echo("""Now please tell me up to which tensor rank you wish to satisfy the
 Maxwell-Boltzmann constraints (for example, 2nd rank, 4th rank, etc.). Please
-note that this should be an even number.""") 
+note that this should be an even number.""")
 
     if Arguments['m'] is None:
         MaxTensorRank = int(input("Maximum tensor rank = ? "))
@@ -84,7 +101,7 @@ velocities""" % (TotalNumberOfShells))
     Echo("%s" % ShellList)
     Echo('\n')
 
-    # Subshell analysis 
+    # Subshell analysis
     # the initial value one corresponds to the zero velocity
     TotalNumberOfVelocities = 1
     GrandTotalList = []
@@ -146,7 +163,7 @@ Press return to keep all subshells.""")
                         ListOfUsedSubshells.append(ListOfSubshells[j])
                         NumberOfVelocities += len(ListOfSubshells[j])
         else:
-            Echo("Shell %d with c_i^2 = %d is irreducible." 
+            Echo("Shell %d with c_i^2 = %d is irreducible."
                     % (i_shell + 1, AbsSquared(ListOfVelocities[0])))
             NumberOfVelocities = len(ListOfVelocities)
             ListOfUsedSubshells = [ListOfVelocities]
@@ -165,7 +182,7 @@ velocities in %d shells (including c_i^2 = 0 shell).""" \
     for NumberOfShell, Shell in enumerate(GrandTotalList):
         NumberOfVelocities = len(Shell)
         Echo("  Shell number %d with c_i^2 = %2d and %2d velocities of type %s" \
-            % (NumberOfShell + 1, AbsSquared(Shell[0]), NumberOfVelocities, 
+            % (NumberOfShell + 1, AbsSquared(Shell[0]), NumberOfVelocities,
                 Type(Shell)))
 
     Echo('\n')
@@ -185,9 +202,32 @@ please give me a start value for the random number generator""", LINEWIDTH)
             GrandTotalList, Arguments
 
 
-# Analysis 
+# Analysis
 def Analysis(SpacialDimension, MaxTensorRank, ListOfTensorDimensions,
         GrandTotalList, Arguments):
+    """Performs the analysis for a given set of parameters
+
+    Args:
+        SpacialDimension (int): Spacial dimension
+        MaxTensorRank (int): Maximum tensor rank :math:`M`
+        ListOfTensorDimensions (list): List of the dimensions of tensor space
+            for tensors of rank :math:`2,4,\\dots, M`.
+        GrandTotalList (list): List of lists. The :math:`s`-th sublist
+            contains all velocity vectors of shell :math:`s`.
+        Arguments (dict): Dictionary of arguments as returned by function
+            ParseArguments()
+
+    Returns:
+        int: Return codes\:
+            - 0\:   System has unique solution
+            - 1\:   System has no solution
+            - 2\:   System is underdetermined and requires further examination
+            - 3\:   System has unique solution but there is no physically
+              valid range of existence
+            - 127\: General error
+
+    """
+
     Echo("Now the analysis starts ...")
     TotalNumberOfShells = len(GrandTotalList)
     ShellSizes = np.array([len(Shell) for Shell in GrandTotalList])
@@ -271,9 +311,9 @@ I shall remove for you now.""" % AdditionalLines)
     for i, SingularValue in enumerate(s):
         for j in range(NewRhs.shape[1]):
             ReducedRhs[i,j] = NewRhs[i,j] / SingularValue
-            
+
     Excess = Columns - Rows
-    
+
     if Excess > 0:
         Echo("""We have %d velocity shells but only %d independent equations.
 Therefore the problem has infinitely many solutions. The data will be written
@@ -283,8 +323,8 @@ exists it will be overwritten.\n""" % (Columns, Rows))
         if Arguments['y'] or YesNo("Is this OK? [Yn]"):
 
             # file output
-            np.savez("data.npz", V=V, ReducedRhs=ReducedRhs, 
-                    NumberOfRows=Rows, ShellSizes=ShellSizes) 
+            np.savez("data.npz", V=V, ReducedRhs=ReducedRhs,
+                    NumberOfRows=Rows, ShellSizes=ShellSizes)
             Echo('\n')
             Echo("""Data has been stored. It can be processed by the secondary
 script 'Continue.py'.""")
@@ -363,7 +403,7 @@ script 'Continue.py'.""")
         return 0
 
 
-# Run 
+# Run
 if __name__ == '__main__':
     ExitStatus = Analysis(*GetInputData())
     Echo('\n')
