@@ -8,7 +8,11 @@ from Functions import YesNo, Echo, EchoError
 
 
 def ParseArguments():
-    parser = argparse.ArgumentParser(description="""Find optimal weights for 
+    """Function to parse command line options.
+    Returns:
+        dict: Dictionary of command line options
+    """
+    parser = argparse.ArgumentParser(description="""Find optimal weights for
 an underdetermined problem.\nYou can either supply the input data interactively
 or by the following command line arguments:""")
 
@@ -30,8 +34,24 @@ can use -1 to refer to the last shell etc.""")
 
 
 def Solve(V, ReducedRhs, NumberOfRows, ShellSizes, CsSquared, MinimizeWeights):
-    """Solve the problem via convex optimization. 
-    See: https://www.cvxpy.org/"""
+    """Solve the minimization problem via convex optimization.
+    See: https://www.cvxpy.org/
+
+    Args:
+        V (numpy.ndarray): Orthogonal matrix that results from the singular
+            value decomposition A=U.S.V
+        ReducedRhs (numpy.ndarray): Pruned matrix that has the inverse singular
+            values on the diagonal.
+        NumberOfRows (int): Number of rows of A
+        ShellSizes (list): List of shell sizes (int) NOT including zero shell
+        CsSquared (float): Speed of sound squared
+        MinimizeWeights (list): List of indices of the weights that shall be
+            minimized in the procedure
+
+    Returns:
+        cvxpy.problems.problem.Problem: cvxpy problem. Problem.status indicates
+            wether or not the problem could be solved.
+    """
 
     TotalNumberOfShells = len(ShellSizes) # without zero shell
 
@@ -134,7 +154,7 @@ w_0 w_1 ... This will overwrite any file called %s that already exists."""
 
         Outfile = open(Outfilename, 'w')
         if not YesNo("Is this OK? [Yn]"):
-            Echo("""Aborting the procedure.""")
+            Echo("Aborting the procedure.")
             exit(127)
         if Range[0] > Range[1]:
             Echo("Invalid range %s" % Range)
@@ -144,7 +164,7 @@ w_0 w_1 ... This will overwrite any file called %s that already exists."""
                     CsSquared, MinimizeWeights)
             Solution = Problem.status == "optimal"
 
-            Echo("""  c_s^2 = %f: %s""" % (CsSquared, Problem.status))
+            Echo("  c_s^2 = %f: %s" % (CsSquared, Problem.status))
 
             if Solution:
                 Outfile.write("%17.10e " % CsSquared)
