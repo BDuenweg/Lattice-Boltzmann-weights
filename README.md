@@ -14,6 +14,8 @@ Apart from being useful for researchers and practitioners, the script may perhap
 
 A detailed description of the underlying mathematical theory is given in the paper "Semi-automatic construction of Lattice Boltzmann models" by Dominic Spiller and Burkhard Duenweg. A link to that paper will be given as soon as it is published.
 
+More extensive documentation can be found at BDuenweg.github.io/Lattice-Boltzmann-weights/
+
 ## Installation
 
     $ git clone https://github.com/BDuenweg/Lattice-Boltzmann-weights.git
