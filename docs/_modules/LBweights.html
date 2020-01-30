@@ -1,0 +1,500 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>LBweights &#8212; LBweights  documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for LBweights</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Calculate LB model vectors and weights for a simple</span>
+<span class="sd">cubic lattice of arbitrary dimension</span>
+
+<span class="sd">The method is described in D. Spiller&#39;s and B. Duenweg&#39;s paper</span>
+<span class="sd">&quot;Semi-automatic construction of Lattice Boltzmann models&quot;</span>
+<span class="sd">Therefore explanations in the code are not very detailed</span>
+
+<span class="sd">Exit codes\:</span>
+<span class="sd">    - 0\:   System has unique solution</span>
+<span class="sd">    - 1\:   System has no solution</span>
+<span class="sd">    - 2\:   System is underdetermined and requires further examination</span>
+<span class="sd">    - 3\:   System has unique solution but there is no physically valid range of</span>
+<span class="sd">      existence</span>
+<span class="sd">    - 127\: General error</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">Functions</span> <span class="k">import</span> <span class="o">*</span>
+
+
+<span class="c1"># Gather input data</span>
+<div class="viewcode-block" id="GetInputData"><a class="viewcode-back" href="../index.html#LBweights.GetInputData">[docs]</a><span class="k">def</span> <span class="nf">GetInputData</span><span class="p">(</span><span class="n">Arguments</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ListOfThrowawayStrings</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parse command line arguments. You can optionally give a list with the</span>
+<span class="sd">    subshells that you want to discard.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        Arguments (dict): Dictionary of command line arguments. This is</span>
+<span class="sd">            useful, if the function is used in an automated script that does</span>
+<span class="sd">            not rely on user input.</span>
+<span class="sd">        ListOfThrowawayStrings (list): List of indices of the subshells to be</span>
+<span class="sd">            discarded. This is useful, if the function is used in an automated</span>
+<span class="sd">            script that does not rely on user input.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: Tuple ``(SpacialDimension, MaxTensorRank,</span>
+<span class="sd">        ListOfTensorDimensions, GrandTotalList, Arguments)``</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">CustomArguments</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">Arguments</span> <span class="o">=</span> <span class="n">ParseArguments</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">Arguments</span> <span class="o">=</span> <span class="n">CustomArguments</span>
+
+    <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;First I need to know in which spacial dimension the LB model</span>
+<span class="s2">shall live. Please note that the model will live on a simple cubic lattice.&quot;&quot;&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">Arguments</span><span class="p">[</span><span class="s1">&#39;d&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">SpacialDimension</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Spacial dimension = ? &quot;</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">SpacialDimension</span> <span class="o">=</span> <span class="n">Arguments</span><span class="p">[</span><span class="s1">&#39;d&#39;</span><span class="p">]</span>
+
+    <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;Confirmation: spacial dimension = </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">SpacialDimension</span><span class="p">)</span>
+    <span class="n">Echo</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;Now please tell me up to which tensor rank you wish to satisfy the</span>
+<span class="s2">Maxwell-Boltzmann constraints (for example, 2nd rank, 4th rank, etc.). Please</span>
+<span class="s2">note that this should be an even number.&quot;&quot;&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">Arguments</span><span class="p">[</span><span class="s1">&#39;m&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">MaxTensorRank</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Maximum tensor rank = ? &quot;</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">MaxTensorRank</span> <span class="o">=</span> <span class="n">Arguments</span><span class="p">[</span><span class="s1">&#39;m&#39;</span><span class="p">]</span>
+
+    <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;Confirmation: maximum tensor rank = </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">MaxTensorRank</span><span class="p">)</span>
+    <span class="n">Echo</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">DimensionOfTensorSpace</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">ListOfTensorDimensions</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">MaxTensorRank</span> <span class="o">//</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="n">CurrentTensorRank</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">2</span>
+        <span class="n">TensorDimension</span><span class="p">,</span> <span class="n">ListOfPossibleTensors</span> <span class="o">=</span> \
+            <span class="n">AnalyzeTensorDimension</span><span class="p">(</span><span class="n">CurrentTensorRank</span><span class="p">)</span>
+        <span class="n">ListOfTensorDimensions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TensorDimension</span><span class="p">)</span>
+        <span class="n">DimensionOfTensorSpace</span> <span class="o">+=</span> <span class="n">TensorDimension</span>
+
+    <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;I expect that you need </span><span class="si">%d</span><span class="s2"> velocity shells plus the zero velocity</span>
+<span class="s2">shell, which we do not need to consider explicitly.  Perhaps, however, you can</span>
+<span class="s2">get away with less - just try!&quot;&quot;&quot;</span> <span class="o">%</span> <span class="n">DimensionOfTensorSpace</span><span class="p">)</span>
+    <span class="n">Echo</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">Arguments</span><span class="p">[</span><span class="s1">&#39;c&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;Please give me the squared lengths of the velocity shells</span>
+<span class="s2">that you wish to analyze (excluding the zero velocity shell) in the simple</span>
+<span class="s2">format: 1 2 3 4 5 &quot;&quot;&quot;</span><span class="p">)</span>
+        <span class="n">ShellString</span> <span class="o">=</span> <span class="nb">input</span><span class="p">()</span>
+        <span class="n">ShellList</span> <span class="o">=</span> <span class="n">ShellString</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="n">ShellList</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">ShellList</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ShellList</span> <span class="o">=</span> <span class="n">Arguments</span><span class="p">[</span><span class="s1">&#39;c&#39;</span><span class="p">]</span>
+
+    <span class="n">TotalNumberOfShells</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ShellList</span><span class="p">)</span>
+
+    <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;I understand that you want </span><span class="si">%d</span><span class="s2"> shells with squared</span>
+<span class="s2">velocities&quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">TotalNumberOfShells</span><span class="p">))</span>
+    <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">ShellList</span><span class="p">)</span>
+    <span class="n">Echo</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Subshell analysis</span>
+    <span class="c1"># the initial value one corresponds to the zero velocity</span>
+    <span class="n">TotalNumberOfVelocities</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">GrandTotalList</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">TotalListOfSubshells</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Calculate cubic group for subshell analysis</span>
+    <span class="n">Group</span> <span class="o">=</span> <span class="n">GetGroup</span><span class="p">(</span><span class="n">SpacialDimension</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i_shell</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">TotalNumberOfShells</span><span class="p">):</span>
+        <span class="n">SquaredVelocity</span> <span class="o">=</span> <span class="n">ShellList</span><span class="p">[</span><span class="n">i_shell</span><span class="p">]</span>
+        <span class="n">ListOfVelocities</span> <span class="o">=</span> <span class="n">FindVelocities</span><span class="p">(</span><span class="n">SpacialDimension</span><span class="p">,</span> <span class="n">SquaredVelocity</span><span class="p">)</span>
+        <span class="n">NumberOfVelocities</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ListOfVelocities</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">NumberOfVelocities</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">EchoError</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;The shell with squared velocity = </span><span class="si">%d</span><span class="s2"> is empty. I</span>
+<span class="s2">assume that is not intended. Therefore I abort.&quot;&quot;&quot;</span> <span class="o">%</span> <span class="n">SquaredVelocity</span><span class="p">)</span>
+            <span class="n">exit</span><span class="p">(</span><span class="mi">127</span><span class="p">)</span>
+
+        <span class="c1"># This will let the user choose which subshells to remove from the</span>
+        <span class="c1"># current shell and then return the possibly reduced set.</span>
+        <span class="n">ListOfSubshells</span> <span class="o">=</span> <span class="n">GetListOfSubshells</span><span class="p">(</span><span class="n">ListOfVelocities</span><span class="p">,</span> <span class="n">Group</span><span class="p">)</span>
+        <span class="n">NumberOfSubshells</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ListOfSubshells</span><span class="p">)</span>
+        <span class="n">TotalListOfSubshells</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">NumberOfSubshells</span><span class="p">)</span>
+        <span class="n">ListOfUsedSubshells</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">NumberOfVelocities</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">NumberOfSubshells</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;Shell </span><span class="si">%d</span><span class="s2"> with c_i^2 = </span><span class="si">%d</span><span class="s2"> consists of </span><span class="si">%d</span><span class="s2"> subshells:&quot;</span> <span class="o">%</span> \
+                <span class="p">(</span><span class="n">i_shell</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">AbsSquared</span><span class="p">(</span><span class="n">ListOfVelocities</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                 <span class="n">NumberOfSubshells</span><span class="p">))</span>
+
+            <span class="k">for</span> <span class="n">i_subs</span><span class="p">,</span> <span class="n">Subshell</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ListOfSubshells</span><span class="p">):</span>
+                <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;  Subshell </span><span class="si">%d</span><span class="s2"> containing </span><span class="si">%2d</span><span class="s2"> velocities of type </span><span class="si">%s</span><span class="s2">&quot;</span> \
+                    <span class="o">%</span> <span class="p">(</span><span class="n">i_subs</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">Subshell</span><span class="p">),</span> <span class="n">Type</span><span class="p">(</span><span class="n">Subshell</span><span class="p">)))</span>
+
+
+            <span class="k">if</span> <span class="n">ListOfThrowawayStrings</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">EchoError</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;Please give me the numbers of those subshells,</span>
+<span class="s2">that you wish to EXCLUDE from the analysis in the established format: 1 2 3.</span>
+<span class="s2">Press return to keep all subshells.&quot;&quot;&quot;</span><span class="p">)</span>
+                <span class="n">ThrowawayString</span> <span class="o">=</span> <span class="nb">input</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ThrowawayString</span> <span class="o">=</span> <span class="n">ListOfThrowawayStrings</span><span class="p">[</span><span class="n">i_shell</span><span class="p">]</span>
+
+            <span class="c1"># Keep all</span>
+            <span class="k">if</span> <span class="n">ThrowawayString</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="n">Echo</span><span class="p">(</span><span class="s1">&#39;  Keeping all subshells</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">NumberOfVelocities</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ListOfVelocities</span><span class="p">)</span>
+                <span class="n">ListOfUsedSubshells</span> <span class="o">=</span> <span class="n">ListOfSubshells</span>
+            <span class="c1"># Remove selected</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">Echo</span><span class="p">(</span><span class="s1">&#39;  Discarding subshells with indices </span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">ThrowawayString</span><span class="p">)</span>
+                <span class="n">ThrowawayList</span> <span class="o">=</span> <span class="n">ThrowawayString</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                <span class="n">ThrowawayList</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">ThrowawayList</span><span class="p">))</span>
+                <span class="n">ThrowawaySet</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ThrowawayList</span><span class="p">)</span>
+
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NumberOfSubshells</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">j</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ThrowawaySet</span><span class="p">:</span>
+                        <span class="n">ListOfUsedSubshells</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ListOfSubshells</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+                        <span class="n">NumberOfVelocities</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ListOfSubshells</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;Shell </span><span class="si">%d</span><span class="s2"> with c_i^2 = </span><span class="si">%d</span><span class="s2"> is irreducible.&quot;</span>
+                    <span class="o">%</span> <span class="p">(</span><span class="n">i_shell</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">AbsSquared</span><span class="p">(</span><span class="n">ListOfVelocities</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span>
+            <span class="n">NumberOfVelocities</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ListOfVelocities</span><span class="p">)</span>
+            <span class="n">ListOfUsedSubshells</span> <span class="o">=</span> <span class="p">[</span><span class="n">ListOfVelocities</span><span class="p">]</span>
+
+        <span class="n">GrandTotalList</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">ListOfUsedSubshells</span><span class="p">)</span>
+        <span class="n">TotalNumberOfVelocities</span> <span class="o">+=</span> <span class="n">NumberOfVelocities</span>
+
+    <span class="n">TotalNumberOfShells</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">GrandTotalList</span><span class="p">)</span>
+
+    <span class="c1"># Now give the user the trivial facts about the selected model</span>
+    <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;Let me summarize: Your LB model comprises altogether </span><span class="si">%d</span><span class="s2"></span>
+<span class="s2">velocities in </span><span class="si">%d</span><span class="s2"> shells (including c_i^2 = 0 shell).&quot;&quot;&quot;</span> \
+        <span class="o">%</span> <span class="p">(</span><span class="n">TotalNumberOfVelocities</span><span class="p">,</span> <span class="n">TotalNumberOfShells</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">LINEWIDTH</span><span class="p">)</span>
+
+    <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;The non-trivial shells are:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">NumberOfShell</span><span class="p">,</span> <span class="n">Shell</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">GrandTotalList</span><span class="p">):</span>
+        <span class="n">NumberOfVelocities</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">Shell</span><span class="p">)</span>
+        <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;  Shell number </span><span class="si">%d</span><span class="s2"> with c_i^2 = </span><span class="si">%2d</span><span class="s2"> and </span><span class="si">%2d</span><span class="s2"> velocities of type </span><span class="si">%s</span><span class="s2">&quot;</span> \
+            <span class="o">%</span> <span class="p">(</span><span class="n">NumberOfShell</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">AbsSquared</span><span class="p">(</span><span class="n">Shell</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">NumberOfVelocities</span><span class="p">,</span>
+                <span class="n">Type</span><span class="p">(</span><span class="n">Shell</span><span class="p">)))</span>
+
+    <span class="n">Echo</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">Arguments</span><span class="p">[</span><span class="s1">&#39;s&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">EchoError</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;The procedure is based upon random vectors, therefore</span>
+<span class="s2">please give me a start value for the random number generator&quot;&quot;&quot;</span><span class="p">,</span> <span class="n">LINEWIDTH</span><span class="p">)</span>
+        <span class="n">seed</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Random number seed = ? &quot;</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">seed</span> <span class="o">=</span> <span class="n">Arguments</span><span class="p">[</span><span class="s1">&#39;s&#39;</span><span class="p">]</span>
+
+    <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;Confirmation: random seed = </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">seed</span><span class="p">)</span>
+    <span class="n">Echo</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">SpacialDimension</span><span class="p">,</span> <span class="n">MaxTensorRank</span><span class="p">,</span> <span class="n">ListOfTensorDimensions</span><span class="p">,</span> \
+            <span class="n">GrandTotalList</span><span class="p">,</span> <span class="n">Arguments</span></div>
+
+
+<span class="c1"># Analysis</span>
+<div class="viewcode-block" id="Analysis"><a class="viewcode-back" href="../index.html#LBweights.Analysis">[docs]</a><span class="k">def</span> <span class="nf">Analysis</span><span class="p">(</span><span class="n">SpacialDimension</span><span class="p">,</span> <span class="n">MaxTensorRank</span><span class="p">,</span> <span class="n">ListOfTensorDimensions</span><span class="p">,</span>
+        <span class="n">GrandTotalList</span><span class="p">,</span> <span class="n">Arguments</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Performs the analysis for a given set of parameters</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        SpacialDimension (int): Spacial dimension</span>
+<span class="sd">        MaxTensorRank (int): Maximum tensor rank :math:`M`</span>
+<span class="sd">        ListOfTensorDimensions (list): List of the dimensions of tensor space</span>
+<span class="sd">            for tensors of rank :math:`2,4,\\dots, M`.</span>
+<span class="sd">        GrandTotalList (list): List of lists. The :math:`s`-th sublist</span>
+<span class="sd">            contains all velocity vectors of shell :math:`s`.</span>
+<span class="sd">        Arguments (dict): Dictionary of arguments as returned by function</span>
+<span class="sd">            ParseArguments()</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        int: Return codes\:</span>
+<span class="sd">            - 0\:   System has unique solution</span>
+<span class="sd">            - 1\:   System has no solution</span>
+<span class="sd">            - 2\:   System is underdetermined and requires further examination</span>
+<span class="sd">            - 3\:   System has unique solution but there is no physically</span>
+<span class="sd">              valid range of existence</span>
+<span class="sd">            - 127\: General error</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;Now the analysis starts ...&quot;</span><span class="p">)</span>
+    <span class="n">TotalNumberOfShells</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">GrandTotalList</span><span class="p">)</span>
+    <span class="n">ShellSizes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">Shell</span><span class="p">)</span> <span class="k">for</span> <span class="n">Shell</span> <span class="ow">in</span> <span class="n">GrandTotalList</span><span class="p">])</span>
+
+    <span class="n">LeftHandSideMatrix</span> <span class="o">=</span> <span class="n">FillLeftHandSide</span><span class="p">(</span>
+        <span class="n">SpacialDimension</span><span class="p">,</span> <span class="n">MaxTensorRank</span><span class="p">,</span> <span class="n">ListOfTensorDimensions</span><span class="p">,</span>
+        <span class="n">TotalNumberOfShells</span><span class="p">,</span> <span class="n">GrandTotalList</span><span class="p">)</span>
+
+    <span class="c1"># Keep in mind: This is a (NumberOfRows x TotalNumberOfShells) matrix</span>
+
+    <span class="n">RightHandSideMatrix</span> <span class="o">=</span> <span class="n">FillRightHandSide</span><span class="p">(</span>
+        <span class="n">MaxTensorRank</span><span class="p">,</span> <span class="n">ListOfTensorDimensions</span><span class="p">)</span>
+
+    <span class="c1"># Test given solution</span>
+    <span class="k">if</span> <span class="n">Arguments</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">Echo</span><span class="p">()</span>
+        <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;You have chosen to test a solution.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">TestSolution</span><span class="p">(</span><span class="n">GrandTotalList</span><span class="p">,</span> <span class="n">MaxTensorRank</span><span class="p">,</span>
+                <span class="n">SpacialDimension</span><span class="p">,</span> <span class="n">ListOfTensorDimensions</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1"># First do a singular-value decomposition (SVD)</span>
+    <span class="c1"># of the left-hand side.</span>
+    <span class="c1"># For background on SVD, see</span>
+    <span class="c1"># https://en.wikipedia.org/wiki/Singular_value_decomposition</span>
+    <span class="c1"># For the numpy syntax, see</span>
+    <span class="c1"># https://docs.scipy.org/doc/numpy/reference/generated/</span>
+    <span class="c1"># numpy.linalg.svd.html#numpy.linalg.svd</span>
+
+    <span class="n">U</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">svd</span><span class="p">(</span><span class="n">LeftHandSideMatrix</span><span class="p">,</span> <span class="n">full_matrices</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># -------------------------------------------------------------------------</span>
+    <span class="n">MatrixShape</span> <span class="o">=</span> <span class="n">LeftHandSideMatrix</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">Rows</span> <span class="o">=</span> <span class="n">MatrixShape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">Columns</span> <span class="o">=</span> <span class="n">MatrixShape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># Identify very small singular values with zero</span>
+    <span class="n">TOL</span> <span class="o">=</span> <span class="mf">1.e-8</span>
+    <span class="n">Rank</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">SingularValue</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">SingularValue</span> <span class="o">&lt;</span> <span class="n">TOL</span><span class="p">:</span>
+            <span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Rank</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="c1"># -------------------------------------------------------------------------</span>
+
+    <span class="c1"># U: orthogonal matrix (NumberOfRows x NumberOfRows)</span>
+    <span class="c1"># V: orthogonal matrix (TotalNumberOfShells x TotalNumberOfShells)</span>
+    <span class="c1"># s: stores the singular values as a 1d array</span>
+    <span class="c1"># The actual decomposition is</span>
+    <span class="c1"># A = U S V</span>
+    <span class="c1"># where A = LeftHandSideMatrix</span>
+    <span class="c1"># and S is a matrix of size (NumberOfRows x TotalNumberOfShells)</span>
+    <span class="c1"># that contains the singular values on the diagonal</span>
+    <span class="c1"># and is zero elsewhere</span>
+
+    <span class="c1"># Move U to the right-hand side</span>
+    <span class="n">NewRhs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">U</span><span class="p">),</span> <span class="n">RightHandSideMatrix</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">Rank</span> <span class="o">&lt;</span> <span class="n">Rows</span><span class="p">:</span>
+        <span class="n">AdditionalLines</span> <span class="o">=</span> <span class="n">Rows</span> <span class="o">-</span> <span class="n">Rank</span>
+        <span class="n">TestNorm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">NewRhs</span><span class="p">[</span><span class="o">-</span><span class="n">AdditionalLines</span><span class="p">:])</span>
+        <span class="n">TOL</span> <span class="o">=</span> <span class="mf">1.e-8</span>
+        <span class="k">if</span> <span class="n">TestNorm</span> <span class="o">&gt;</span> <span class="n">TOL</span><span class="p">:</span>
+            <span class="c1"># Terminate script</span>
+            <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;The system does not have a solution.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Prune system</span>
+            <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;There are </span><span class="si">%d</span><span class="s2"> trivial equations (0 = 0) in the system which</span>
+<span class="s2">I shall remove for you now.&quot;&quot;&quot;</span> <span class="o">%</span> <span class="n">AdditionalLines</span><span class="p">)</span>
+            <span class="n">Echo</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">Rows</span> <span class="o">=</span> <span class="n">Rank</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">Rows</span><span class="p">)</span>
+            <span class="n">NewRhs</span><span class="o">.</span><span class="n">resize</span><span class="p">((</span><span class="n">Rows</span><span class="p">,</span><span class="n">NewRhs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+    <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;The system has at least one solution.&quot;</span><span class="p">)</span>
+    <span class="n">Echo</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="n">ReducedRhs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">Rows</span><span class="p">,</span><span class="n">NewRhs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">SingularValue</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NewRhs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">ReducedRhs</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">NewRhs</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">/</span> <span class="n">SingularValue</span>
+
+    <span class="n">Excess</span> <span class="o">=</span> <span class="n">Columns</span> <span class="o">-</span> <span class="n">Rows</span>
+
+    <span class="k">if</span> <span class="n">Excess</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;We have </span><span class="si">%d</span><span class="s2"> velocity shells but only </span><span class="si">%d</span><span class="s2"> independent equations.</span>
+<span class="s2">Therefore the problem has infinitely many solutions. The data will be written</span>
+<span class="s2">to a file called &#39;data.npz&#39; for further processing. If such a file already</span>
+<span class="s2">exists it will be overwritten.</span><span class="se">\n</span><span class="s2">&quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">Columns</span><span class="p">,</span> <span class="n">Rows</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">Arguments</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">YesNo</span><span class="p">(</span><span class="s2">&quot;Is this OK? [Yn]&quot;</span><span class="p">):</span>
+
+            <span class="c1"># file output</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">savez</span><span class="p">(</span><span class="s2">&quot;data.npz&quot;</span><span class="p">,</span> <span class="n">V</span><span class="o">=</span><span class="n">V</span><span class="p">,</span> <span class="n">ReducedRhs</span><span class="o">=</span><span class="n">ReducedRhs</span><span class="p">,</span>
+                    <span class="n">NumberOfRows</span><span class="o">=</span><span class="n">Rows</span><span class="p">,</span> <span class="n">ShellSizes</span><span class="o">=</span><span class="n">ShellSizes</span><span class="p">)</span>
+            <span class="n">Echo</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;Data has been stored. It can be processed by the secondary</span>
+<span class="s2">script &#39;Continue.py&#39;.&quot;&quot;&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;You have chosen not to save the data.&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="mi">2</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;The problem has one unique solution which is:&quot;&quot;&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Now calculate the unique solution</span>
+    <span class="n">SolutionMatrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">V</span><span class="p">),</span> <span class="n">ReducedRhs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">Arguments</span><span class="p">[</span><span class="s2">&quot;quiet&quot;</span><span class="p">]:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">SolutionMatrix</span><span class="p">)</span>
+    <span class="n">Echo</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Some post-processing I:</span>
+    <span class="c1"># Coefficients for the zero velocity shell</span>
+    <span class="n">NumberOfColumns</span> <span class="o">=</span> <span class="n">MaxTensorRank</span> <span class="o">//</span> <span class="mi">2</span>
+
+    <span class="n">W0List</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NumberOfColumns</span><span class="p">):</span>
+        <span class="n">MySum</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">TotalNumberOfShells</span><span class="p">):</span>
+            <span class="n">ListOfVelocities</span> <span class="o">=</span> <span class="n">GrandTotalList</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">NumberOfVelocities</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ListOfVelocities</span><span class="p">)</span>
+            <span class="n">MySum</span> <span class="o">+=</span> <span class="n">SolutionMatrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">NumberOfVelocities</span><span class="p">)</span>
+
+        <span class="n">MySum</span> <span class="o">=</span> <span class="o">-</span><span class="n">MySum</span>
+        <span class="n">W0List</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MySum</span><span class="p">)</span>
+
+    <span class="c1"># Some post-processing II:</span>
+    <span class="c1"># Nice output</span>
+    <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;Coefficients, nice output:&quot;</span><span class="p">)</span>
+
+    <span class="n">TotalString</span> <span class="o">=</span> <span class="s2">&quot;  w[0] = 1&quot;</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NumberOfColumns</span><span class="p">):</span>
+        <span class="n">Power</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">j</span><span class="p">)</span>
+        <span class="n">PowerString</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">Power</span><span class="p">)</span>
+        <span class="n">CoeffString</span> <span class="o">=</span> <span class="n">RatApprox</span><span class="p">(</span><span class="n">W0List</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">CoeffString</span> <span class="o">=</span> <span class="s2">&quot; + (&quot;</span> <span class="o">+</span> <span class="n">CoeffString</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span> <span class="o">+</span> <span class="s2">&quot; * c_s^&quot;</span> <span class="o">+</span> <span class="n">PowerString</span>
+        <span class="n">TotalString</span> <span class="o">=</span> <span class="n">TotalString</span> <span class="o">+</span> <span class="n">CoeffString</span>
+
+    <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">TotalString</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">TotalNumberOfShells</span><span class="p">):</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">TotalString</span> <span class="o">=</span> <span class="s2">&quot;  w[&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;] = 0&quot;</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">NumberOfColumns</span><span class="p">):</span>
+            <span class="n">Power</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">j</span><span class="p">)</span>
+            <span class="n">PowerString</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">Power</span><span class="p">)</span>
+            <span class="n">CoeffString</span> <span class="o">=</span> <span class="n">RatApprox</span><span class="p">(</span><span class="n">SolutionMatrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">])</span>
+            <span class="n">CoeffString</span> <span class="o">=</span> <span class="s2">&quot; + (&quot;</span> <span class="o">+</span> <span class="n">CoeffString</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span> <span class="o">+</span> <span class="s2">&quot; * c_s^&quot;</span> <span class="o">+</span> <span class="n">PowerString</span>
+            <span class="n">TotalString</span> <span class="o">=</span> <span class="n">TotalString</span> <span class="o">+</span> <span class="n">CoeffString</span>
+
+        <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">TotalString</span><span class="p">)</span>
+
+    <span class="n">Echo</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Some post-processing III:</span>
+    <span class="c1"># Range of existence</span>
+
+    <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;Find the range(s) of c_s^2 that yield(s) positive weights&quot;</span><span class="p">)</span>
+    <span class="n">CompressedRoots</span> <span class="o">=</span> <span class="n">FindRangeOfExistence</span><span class="p">(</span><span class="n">W0List</span><span class="p">,</span> <span class="n">SolutionMatrix</span><span class="p">)</span>
+    <span class="n">NumberOfIntervals</span> <span class="o">=</span> <span class="n">OutputRangeOfExistence</span><span class="p">(</span><span class="n">CompressedRoots</span><span class="p">)</span>
+    <span class="n">OutputMagicNumbers</span><span class="p">(</span><span class="n">CompressedRoots</span><span class="p">,</span> <span class="n">W0List</span><span class="p">,</span> <span class="n">SolutionMatrix</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">Arguments</span><span class="p">[</span><span class="s1">&#39;write_latex&#39;</span><span class="p">]:</span>
+        <span class="n">WriteLatexTables</span><span class="p">(</span><span class="n">CompressedRoots</span><span class="p">,</span> <span class="n">W0List</span><span class="p">,</span> <span class="n">SolutionMatrix</span><span class="p">,</span>
+            <span class="n">GrandTotalList</span><span class="p">,</span> <span class="n">MaxTensorRank</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">NumberOfIntervals</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">3</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span></div>
+
+
+<span class="c1"># Run</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">ExitStatus</span> <span class="o">=</span> <span class="n">Analysis</span><span class="p">(</span><span class="o">*</span><span class="n">GetInputData</span><span class="p">())</span>
+    <span class="n">Echo</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;Thank you very much for using </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">exit</span><span class="p">(</span><span class="n">ExitStatus</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">LBweights</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Burkhard Dünweg, Dominic Spiller.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
