@@ -1,4 +1,4 @@
-"""Collection of Functions
+"""Collection of helper functions for LBweights.py and Continue.py
 
 Attributes:
     LINEWIDTH (int): Line width for console output.
