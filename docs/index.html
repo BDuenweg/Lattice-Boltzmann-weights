@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Welcome to LBweights’s documentation! &#8212; LBweights  documentation</title>
+    <title>Welcome to the LBweights documentation! &#8212; LBweights  documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -29,8 +29,8 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="welcome-to-lbweights-s-documentation">
-<h1>Welcome to LBweights’s documentation!<a class="headerlink" href="#welcome-to-lbweights-s-documentation" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="welcome-to-the-lbweights-documentation">
+<h1>Welcome to the LBweights documentation!<a class="headerlink" href="#welcome-to-the-lbweights-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
 <ul class="simple">
@@ -77,10 +77,50 @@ perhaps also be used in a classroom setting.</p>
 paper “Semi-automatic construction of Lattice Boltzmann models” by Dominic
 Spiller and Burkhard Duenweg. A link to that paper will be given as soon as it
 is published.</p>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/BDuenweg/Lattice-Boltzmann-weights.git
+$ virtualenv venv
+$ source venv/bin/activate
+$ cd Lattice-Boltzmann-weights
+$ pip install -r requirements.txt
+</pre></div>
 </div>
-<div class="section" id="module-LBweights">
-<span id="lbweights"></span><h1>LBweights<a class="headerlink" href="#module-LBweights" title="Permalink to this headline">¶</a></h1>
-<p>Calculate LB model vectors and weights for a simple
+</div>
+</div>
+<div class="section" id="lbweights-py">
+<h1>LBweights.py<a class="headerlink" href="#lbweights-py" title="Permalink to this headline">¶</a></h1>
+<p>Calculation of the weights of an LB model. You can either supply the input
+data interactively or by the following command line arguments:</p>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>LBweights.py [-h] [-d D] [-m M] [-c C [C ...]] [-s S]
+                    [-y] [--test] [--quiet] [--write-latex]
+
+optional arguments:
+  -h, --help     show this help message and exit
+  -d D           spacial dimension of the lattice
+  -m M           Maximum tensor rank
+  -c C [C ...]   Space separated list of the radii c_i^2 of
+                 the desired velocity shells
+  -s S           Random number generator seed
+  -y             Answer all prompts with yes (may overwrite
+                 file data.npz)
+  --test         Test, whether a set of weights that can be
+                 written as a linear parametric equation
+                 w = w_0 + lambda_1 w_1 + lambda_2 w_2
+                 solves the equation A.w == b for given
+                 speed of sound.
+                 Weights and speed of sound are entered
+                 interactively by the user.
+  --quiet        Turn off most of the output
+  --write-latex  Write unique solution to the file
+                 &quot;latex_tables.dat&quot; in form of a latex
+                 table. This will append to any existing
+                 file.
+</pre></div>
+</div>
+<span class="target" id="module-LBweights"></span><p>Calculate LB model vectors and weights for a simple
 cubic lattice of arbitrary dimension</p>
 <p>The method is described in D. Spiller’s and B. Duenweg’s paper
 “Semi-automatic construction of Lattice Boltzmann models”
@@ -170,9 +210,30 @@ script that does not rely on user input.</li>
 </dd></dl>
 
 </div>
-<div class="section" id="module-Continue">
-<span id="continue"></span><h1>Continue<a class="headerlink" href="#module-Continue" title="Permalink to this headline">¶</a></h1>
-<p>Contains routines to treat the case of infinitely many solutions.</p>
+</div>
+<div class="section" id="continue-py">
+<h1>Continue.py<a class="headerlink" href="#continue-py" title="Permalink to this headline">¶</a></h1>
+<p>Find optimal weights for an underdetermined problem. This requires the file
+<code class="docutils literal notranslate"><span class="pre">data.npz</span></code> to be present in the directory that can be written by
+<code class="docutils literal notranslate"><span class="pre">LBweights.py</span></code> if an underdetermined problem is encountered.
+You can either supply the input data interactively or by the following command
+line arguments:</p>
+<div class="section" id="id1">
+<h2>Usage<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Continue.py [-h] [-c C [C ...]] [-m M [M ...]]
+
+
+optional arguments:
+  -h, --help    show this help message and exit
+  -c C [C ...]  Range/value of c_s^2 to consider, either in
+                the form &lt;min&gt; &lt;max&gt; &lt;incr&gt; or a single
+                value.
+  -m M [M ...]  List of indices of the weights that are to
+                be minimized. You can use -1 to refer to the
+                last shell etc.
+</pre></div>
+</div>
+<span class="target" id="module-Continue"></span><p>Contains routines to treat the case of infinitely many solutions.</p>
 <dl class="docutils">
 <dt>Exit codes:</dt>
 <dd><ul class="first last simple">
@@ -236,9 +297,10 @@ minimized in the procedure</li>
 </dd></dl>
 
 </div>
+</div>
 <div class="section" id="module-Functions">
-<span id="functions"></span><h1>Functions<a class="headerlink" href="#module-Functions" title="Permalink to this headline">¶</a></h1>
-<p>Collection of Functions</p>
+<span id="functions-py"></span><h1>Functions.py<a class="headerlink" href="#module-Functions" title="Permalink to this headline">¶</a></h1>
+<p>Collection of helper functions for LBweights.py and Continue.py</p>
 <dl class="attribute">
 <dt id="Functions.LINEWIDTH">
 <code class="descclassname">Functions.</code><code class="descname">LINEWIDTH</code><a class="headerlink" href="#Functions.LINEWIDTH" title="Permalink to this definition">¶</a></dt>
@@ -262,14 +324,14 @@ minimized in the procedure</li>
 <dl class="function">
 <dt id="Functions.AbsSquared">
 <code class="descclassname">Functions.</code><code class="descname">AbsSquared</code><span class="sig-paren">(</span><em>Vector</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#AbsSquared"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.AbsSquared" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the squared absolute value of numpy array.
-:param Vector: Vector that is supposed to be squared
-:type Vector: numpy.ndarray</p>
+<dd><p>Return the squared absolute value of numpy array.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Return the squared absolute value of Vector</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>Vector</strong> (<em>numpy.ndarray</em>) – Vector that is supposed to be squared</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Return the squared absolute value of Vector</td>
 </tr>
 </tbody>
 </table>
@@ -937,20 +999,17 @@ contains all velocity vectors of shell <img class="math" src="_images/math/63751
 <dl class="function">
 <dt id="Functions.YesNo">
 <code class="descclassname">Functions.</code><code class="descname">YesNo</code><span class="sig-paren">(</span><em>Question</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#YesNo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.YesNo" title="Permalink to this definition">¶</a></dt>
-<dd><p>Ask for yes or no answer and return a Boolean.
-:param Question: String that is printed when function is called.
-:type Question: str</p>
+<dd><p>Ask for yes or no answer and return a Boolean.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="docutils">
-<dt>True, if answer is any of [“YES”, “Y”, “yes”, “y”, “Yes”, CR]</dt>
-<dd>False, if answer is any of [“NO”, “N”, “no”, “n”, “No”]</dd>
-</dl>
-</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>Question</strong> (<em>str</em>) – String that is printed when function is called.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True, if answer is in <code class="docutils literal notranslate"><span class="pre">[&quot;YES&quot;,</span> <span class="pre">&quot;Y&quot;,</span> <span class="pre">&quot;yes&quot;,</span> <span class="pre">&quot;y&quot;,</span> <span class="pre">&quot;Yes&quot;,</span> <span class="pre">\CR]</span></code>
+False, if answer is in <code class="docutils literal notranslate"><span class="pre">[&quot;NO&quot;,</span> <span class="pre">&quot;N&quot;,</span> <span class="pre">&quot;no&quot;,</span> <span class="pre">&quot;n&quot;,</span> <span class="pre">&quot;No&quot;]</span></code></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
 </tr>
 </tbody>
 </table>

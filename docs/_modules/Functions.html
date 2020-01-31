@@ -30,7 +30,7 @@
           <div class="body" role="main">
             
   <h1>Source code for Functions</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Collection of Functions</span>
+<span></span><span class="sd">&quot;&quot;&quot;Collection of helper functions for LBweights.py and Continue.py</span>
 
 <span class="sd">Attributes:</span>
 <span class="sd">    LINEWIDTH (int): Line width for console output.</span>
@@ -126,12 +126,13 @@
 
 <div class="viewcode-block" id="YesNo"><a class="viewcode-back" href="../index.html#Functions.YesNo">[docs]</a><span class="k">def</span> <span class="nf">YesNo</span><span class="p">(</span><span class="n">Question</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Ask for yes or no answer and return a Boolean.</span>
+
 <span class="sd">    Args:</span>
 <span class="sd">        Question (str): String that is printed when function is called.</span>
 <span class="sd">        </span>
 <span class="sd">    Returns:</span>
-<span class="sd">        bool: True, if answer is any of [&quot;YES&quot;, &quot;Y&quot;, &quot;yes&quot;, &quot;y&quot;, &quot;Yes&quot;, \CR]</span>
-<span class="sd">            False, if answer is any of [&quot;NO&quot;, &quot;N&quot;, &quot;no&quot;, &quot;n&quot;, &quot;No&quot;]</span>
+<span class="sd">        bool: True, if answer is in ``[&quot;YES&quot;, &quot;Y&quot;, &quot;yes&quot;, &quot;y&quot;, &quot;Yes&quot;, \CR]``</span>
+<span class="sd">        False, if answer is in ``[&quot;NO&quot;, &quot;N&quot;, &quot;no&quot;, &quot;n&quot;, &quot;No&quot;]``</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -185,6 +186,7 @@
 
 <div class="viewcode-block" id="AbsSquared"><a class="viewcode-back" href="../index.html#Functions.AbsSquared">[docs]</a><span class="k">def</span> <span class="nf">AbsSquared</span><span class="p">(</span><span class="n">Vector</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Return the squared absolute value of numpy array.</span>
+
 <span class="sd">    Args:</span>
 <span class="sd">        Vector (numpy.ndarray): Vector that is supposed to be squared</span>
 <span class="sd">    Returns:</span>
