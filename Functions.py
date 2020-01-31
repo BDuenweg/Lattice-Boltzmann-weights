@@ -1,4 +1,4 @@
-"""Collection of Functions
+"""Collection of helper functions for LBweights.py and Continue.py
 
 Attributes:
     LINEWIDTH (int): Line width for console output.
@@ -94,12 +94,13 @@ by the following command line arguments:""")
 
 def YesNo(Question):
     """Ask for yes or no answer and return a Boolean.
+
     Args:
         Question (str): String that is printed when function is called.
         
     Returns:
-        bool: True, if answer is any of ["YES", "Y", "yes", "y", "Yes", \CR]
-            False, if answer is any of ["NO", "N", "no", "n", "No"]
+        bool: True, if answer is in ``["YES", "Y", "yes", "y", "Yes", \CR]``
+        False, if answer is in ``["NO", "N", "no", "n", "No"]``
 
     """
 
@@ -153,6 +154,7 @@ def EchoError(String="\n", Linewidth = LINEWIDTH):
 
 def AbsSquared(Vector):
     """Return the squared absolute value of numpy array.
+
     Args:
         Vector (numpy.ndarray): Vector that is supposed to be squared
     Returns:

@@ -71,24 +71,75 @@ Installation
     $ cd Lattice-Boltzmann-weights
     $ pip install -r requirements.txt
 
+LBweights.py
+============
+
+Calculation of the weights of an LB model. You can either supply the input
+data interactively or by the following command line arguments:
+
 Usage
 -----
-::
+.. code-block:: none
 
-    $ python LBweights.py
+    LBweights.py [-h] [-d D] [-m M] [-c C [C ...]] [-s S] 
+                        [-y] [--test] [--quiet] [--write-latex]
+
+    optional arguments:
+      -h, --help     show this help message and exit
+      -d D           spacial dimension of the lattice
+      -m M           Maximum tensor rank
+      -c C [C ...]   Space separated list of the radii c_i^2 of
+                     the desired velocity shells
+      -s S           Random number generator seed
+      -y             Answer all prompts with yes (may overwrite
+                     file data.npz)
+      --test         Test, whether a set of weights that can be
+                     written as a linear parametric equation
+                     w = w_0 + lambda_1 w_1 + lambda_2 w_2
+                     solves the equation A.w == b for given
+                     speed of sound.
+                     Weights and speed of sound are entered
+                     interactively by the user.
+      --quiet        Turn off most of the output
+      --write-latex  Write unique solution to the file
+                     "latex_tables.dat" in form of a latex
+                     table. This will append to any existing
+                     file.
 
 
-LBweights
-=========
+
 .. automodule:: LBweights
    :members:
 
-Continue
-========
+Continue.py
+===========
+
+Find optimal weights for an underdetermined problem. This requires the file 
+``data.npz`` to be present in the directory that can be written by 
+``LBweights.py`` if an underdetermined problem is encountered.
+You can either supply the input data interactively or by the following command
+line arguments:
+
+Usage
+-----
+.. code-block:: none
+
+    Continue.py [-h] [-c C [C ...]] [-m M [M ...]]
+
+
+    optional arguments:
+      -h, --help    show this help message and exit
+      -c C [C ...]  Range/value of c_s^2 to consider, either in 
+                    the form <min> <max> <incr> or a single 
+                    value.
+      -m M [M ...]  List of indices of the weights that are to 
+                    be minimized. You can use -1 to refer to the
+                    last shell etc.
+
 .. automodule:: Continue
    :members:
 
-Functions
-=========
+Functions.py
+============
 .. automodule:: Functions
    :members:
