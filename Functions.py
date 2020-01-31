@@ -97,7 +97,7 @@ def YesNo(Question):
 
     Args:
         Question (str): String that is printed when function is called.
-        
+
     Returns:
         bool: True, if answer is in ``["YES", "Y", "yes", "y", "Yes", \CR]``
         False, if answer is in ``["NO", "N", "no", "n", "No"]``
@@ -177,9 +177,9 @@ def AnalyzeTensorDimension(CurrentTensorRank):
     deltas.
     Hence tensor dimension is three. For each new (even) rank M we get another
     delta with M indexes, plus all possible products of the lower-order delta
-    tensors So, for rank two we get ``[[2]]`` (1d) for rank four 
+    tensors So, for rank two we get ``[[2]]`` (1d) for rank four
     ``[[4], [2,2]]`` (2d) for rank six ``[[6], [4,2], [2,2,2]]`` (3d) for rank
-    eight ``[[8], [6,2], [4,4], [4,2,2], [2,2,2,2]]`` (5d) and so on. 
+    eight ``[[8], [6,2], [4,4], [4,2,2], [2,2,2,2]]`` (5d) and so on.
     The routine takes care of that "and so on". This is most easily done in a
     recursive fashion.
 
@@ -188,7 +188,7 @@ def AnalyzeTensorDimension(CurrentTensorRank):
 
     Returns:
         int: Dimension of tensor space
-        list: List compatible tensors
+        list: List of compatible tensors
 
     """
 
@@ -1039,7 +1039,7 @@ def TestSolution(GrandTotalList, MaxTensorRank, SpacialDimension,
 def ToMatrix(Array):
     """Convert an array of unit vector representations to proper matrix.
     For example
-    ``[0,2,1]`` will be converted to 
+    ``[0,2,1]`` will be converted to
     ``[[1,0,0], [0,0,1], [0,1,0]]``.
 
     Args:
