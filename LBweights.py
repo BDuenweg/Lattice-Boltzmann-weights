@@ -242,7 +242,7 @@ def Analysis(SpacialDimension, MaxTensorRank, ListOfTensorDimensions,
         MaxTensorRank, ListOfTensorDimensions)
 
     # Test given solution
-    if Arguments['test'] is not None:
+    if Arguments['test']:
         Echo()
         Echo("You have chosen to test a solution.")
         return TestSolution(GrandTotalList, MaxTensorRank,
