@@ -41,10 +41,10 @@ def GetInputData(Arguments=None, ListOfThrowawayStrings=None):
 
     """
 
-    if CustomArguments is None:
+    if Arguments is None:
         Arguments = ParseArguments()
     else:
-        Arguments = CustomArguments
+        Arguments = Arguments
 
     Echo("""First I need to know in which spacial dimension the LB model
 shall live. Please note that the model will live on a simple cubic lattice.""")
