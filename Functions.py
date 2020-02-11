@@ -97,7 +97,7 @@ def YesNo(Question):
 
     Args:
         Question (str): String that is printed when function is called.
-        
+
     Returns:
         bool: True, if answer is in ``["YES", "Y", "yes", "y", "Yes", \CR]``
         False, if answer is in ``["NO", "N", "no", "n", "No"]``
@@ -177,9 +177,9 @@ def AnalyzeTensorDimension(CurrentTensorRank):
     deltas.
     Hence tensor dimension is three. For each new (even) rank M we get another
     delta with M indexes, plus all possible products of the lower-order delta
-    tensors So, for rank two we get ``[[2]]`` (1d) for rank four 
+    tensors So, for rank two we get ``[[2]]`` (1d) for rank four
     ``[[4], [2,2]]`` (2d) for rank six ``[[6], [4,2], [2,2,2]]`` (3d) for rank
-    eight ``[[8], [6,2], [4,4], [4,2,2], [2,2,2,2]]`` (5d) and so on. 
+    eight ``[[8], [6,2], [4,4], [4,2,2], [2,2,2,2]]`` (5d) and so on.
     The routine takes care of that "and so on". This is most easily done in a
     recursive fashion.
 
@@ -677,7 +677,7 @@ def Frexp10(Float):
     Exponent = len(Digits) + Exponent - 1
     Mantissa = Float/10**Exponent
 
-    assert(abs(Mantissa * 10**Exponent - Float) < 10e-14)
+    assert(abs(Mantissa * 10**Exponent - Float) < 1e-12)
     assert(1. <= abs(Mantissa) <= 10.)
 
     return (Mantissa, Exponent)
@@ -925,15 +925,61 @@ def EnterWeights(TotalNumberOfShells, i_par=0):
     return np.array(WTemp)
 
 
+def CloseEnough(A, W, B, M, RelTol=1e-5, AbsTol=1e-14):
+    """Test the condition
+
+    .. math::
+
+        \\left\\lvert \\sum_j A_{ij} w_j - b_i \\right\\rvert
+        &< \\varepsilon_0
+        + \\varepsilon \\sqrt{\\left(\\textstyle{\\sum_j} A_{ij} w_j\\right)^2
+        + \\left(\\frac{m_i}{2}\\right)^2 b_i}
+        \\text{ for all } i
+
+    Args:
+        A (numpy.ndarray): Matrix :math:`A`
+        W (numpy.ndarray): Vector :math:`\\vec{w}`
+        B (numpy.ndarray): Vector :math:`\\vec{b},~b_i = c_\\mathrm{s}^{m_i}`
+        M (numpy.ndarray): Vector :math:`\\vec{m}`
+        RelTol (float): Relative tolerance :math:`\\varepsilon`
+        AbsTol (float): Absolute (numerical) tolerance :math:`\\varepsilon_0`
+
+    Returns:
+        bool: True if condition satisfied, False otherwise.
+
+    """
+
+    assert(np.all(B >= 0))
+    assert(np.all(M >= 0))
+
+    AdW = A.dot(W)
+    Delta = np.abs(AdW - B)
+    Thresh = AbsTol \
+        + RelTol * np.sqrt(np.square(AdW) + np.square(0.5*np.multiply(M,B)))
+
+    return np.all(Delta < Thresh)
+
+
 def TestSolution(GrandTotalList, MaxTensorRank, SpacialDimension,
-        ListOfTensorDimensions, Solution=None, atol=1e-8, rtol=1e-5):
-    """Test validity of the equation :math:`A.w = b` for given weights w and
-    speed of sound :math:`c_s^2`.
-    For this the numpy routine numpy.allclose() is used. A solution is deemed
-    valid, if :math:`|A\\vec{w} - b| \\leq (\mathrm{atol} + \mathrm{rtol} |A \\vec{w}|`).
+        ListOfTensorDimensions, Solution=None, RelTol=1e-5, AbsTol=1e-14):
+    """Test validity of the equation :math:`A\\vec{w} = \\vec{b}` for given
+    weights w and speed of sound :math:`c_s^2`.
+    A solution is deemed valid, if
+
+    .. math::
+
+        \\left\\lvert \\sum_j A_{ij} w_j - b_i \\right\\rvert
+        &< \\varepsilon_0
+        + \\varepsilon \\sqrt{\\left(\\textstyle{\\sum_j} A_{ij} w_j\\right)^2
+        + \\left(\\frac{m_i}{2}\\right)^2 b_i}
+        \\text{ for all } i
 
     The weights can be given as a linear parametric equation
-    :math:`\\vec{w} = \\vec{w}_0 + \lambda_1 \\vec{w}_1 + \lambda_2 \\vec{w}_2 + \\dots`
+
+    .. math::
+
+        \\vec{w} = \\vec{w}_0 + \lambda_1 \\vec{w}_1 + \lambda_2 \\vec{w}_2 +
+        \\dots
 
     Args:
         GrandTotalList (list): List of lists. The :math:`s`-th sublist
@@ -945,8 +991,8 @@ def TestSolution(GrandTotalList, MaxTensorRank, SpacialDimension,
         Solution (list): Solution that is to be tested in the form
             ``[CsSquared, [[w_00, w_01,...], [[w_10, w_11, ...], ...]``
             If None is given, the user is prompted to enter a solution by hand.
-        atol (float): Absolute tolerance (parameter for numpy.allclose())
-        rtol (float): Relative tolerance (parameter for numpy.allclose())
+        RelTol (float): Relative tolerance :math:`\\varepsilon`
+        AbsTol (float): Absolute (numerical) tolerance :math:`\\varepsilon_0`
 
     Returns:
         int: 0 if solution is valid, otherwise 1
@@ -955,7 +1001,6 @@ def TestSolution(GrandTotalList, MaxTensorRank, SpacialDimension,
 
     ShellSizes = np.array([1] + [len(Shell) for Shell in GrandTotalList])
     TotalNumberOfShells = len(GrandTotalList) # NOT including zero shell!
-
     # Type solution by hand
     if Solution is None:
         # Input speed of sound
@@ -963,75 +1008,66 @@ def TestSolution(GrandTotalList, MaxTensorRank, SpacialDimension,
         CsSquared = float(input("c_s^2 = "))
         assert(CsSquared >= 0)
 
-        W = []
+        ListOfWeightVectors = []
 
         # Input w_0
         i_par = 0
         WTemp = EnterWeights(TotalNumberOfShells, i_par)
-        if np.dot(WTemp, ShellSizes) - 1. >= atol:
-            EchoError("ERROR: Weights do not satisfy normalization condition!")
-            return 1
-        W.append(WTemp)
+        ListOfWeightVectors.append(WTemp)
 
         # Input w_i, i > 0
         while YesNo("Do you want to add further solution vectors for a parametric solution? [Yn]"):
             i_par += 1
             WTemp = EnterWeights(TotalNumberOfShells, i_par)
-            if np.dot(WTemp, ShellSizes) >= atol:
-                EchoError("ERROR: Weights do not satisfy normalization condition!")
-                return 1
-            W.append(WTemp)
+            ListOfWeightVectors.append(WTemp)
 
-        Solution = [CsSquared, W]
+        Solution = [CsSquared, ListOfWeightVectors]
         Echo()
 
-    LeftHandSideMatrix = FillLeftHandSide(
+    A = FillLeftHandSide(
         SpacialDimension, MaxTensorRank, ListOfTensorDimensions,
         TotalNumberOfShells, GrandTotalList)
 
+
+    # set B, M
     CsSquared = Solution[0]
-    W = Solution[1][0]
-    assert(CsSquared >= 0)
-
-    # set A
-    n_row = LeftHandSideMatrix.shape[0]
-    n_col = LeftHandSideMatrix.shape[1]
-
-    # pad A so that normalization condition for the weights is included
-    A = np.zeros((n_row + 1, n_col + 1))
-    A[0,:] = ShellSizes
-    A[1:,1:] = LeftHandSideMatrix
-
-    # set B
-    B = [1.]
+    B = []
+    M = []
     for k in range(MaxTensorRank // 2):
         # TensorRank = 2 * k + 2
         LocalDimensionOfTensorSpace = ListOfTensorDimensions[k]
 
-        # j loop is loop over random vectors
-        for j in range(LocalDimensionOfTensorSpace):
+        for _ in range(LocalDimensionOfTensorSpace):
             B.append(CsSquared**(k+1))
+            M.append(2 * k + 2)
 
     B = np.array(B)
+    M = np.array(M)
 
-    # compare
+    # test
     for i_W, W in enumerate(Solution[1]):
         assert(len(W) == TotalNumberOfShells + 1)
         if i_W == 0:
+            CNorm = 1.
             C = B
         else:
+            CNorm = 0.
             C = np.zeros(len(B))
 
-        if not np.allclose(C, A.dot(W), atol=atol, rtol=rtol):
-            EchoError("The given solution does NOT solve the system.")
-            EchoError("Solution vector %d is not compatible." % i_W)
-            EchoError('A.w%s = ' % '-b' if i_W == 0 else '')
-            EchoError(A.dot(W) - C)
+        # first, test normalization condition
+        if abs(ShellSizes.dot(W) - CNorm) >= RelTol:
+            EchoError()
+            EchoError("The weights w_%d do not satisfy normalization condition!" % i_W)
+            return 1
+        # test A.w == b
+        if not CloseEnough(A, W[1:], C, M, RelTol, AbsTol):
+            EchoError()
+            EchoError("The given solution does NOT solve the system, solution vector w_%d is not compatible." % i_W)
+            EchoError('A.w_%d%s = ' % (i_W, '-b' if i_W == 0 else ''))
+            EchoError(str(A.dot(W[1:]) - C))
             return 1
 
     Echo("The given solution solves the system.")
-    Echo('A.w - b = ')
-    print(A.dot(W) - C)
     return 0
 
 
@@ -1039,7 +1075,7 @@ def TestSolution(GrandTotalList, MaxTensorRank, SpacialDimension,
 def ToMatrix(Array):
     """Convert an array of unit vector representations to proper matrix.
     For example
-    ``[0,2,1]`` will be converted to 
+    ``[0,2,1]`` will be converted to
     ``[[1,0,0], [0,0,1], [0,1,0]]``.
 
     Args:
@@ -1155,7 +1191,7 @@ def ComputeSubshell(Velocity, Group):
 
     Returns:
         list: List of velocity vectors that form the velocity shell spanned by
-            Group
+        Group
 
     """
 

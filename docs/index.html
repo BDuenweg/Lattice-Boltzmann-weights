@@ -372,6 +372,40 @@ list: List compatible tensors</td>
 </dd></dl>
 
 <dl class="function">
+<dt id="Functions.CloseEnough">
+<code class="descclassname">Functions.</code><code class="descname">CloseEnough</code><span class="sig-paren">(</span><em>A</em>, <em>W</em>, <em>B</em>, <em>M</em>, <em>RelTol=1e-05</em>, <em>AbsTol=1e-14</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#CloseEnough"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.CloseEnough" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test the condition</p>
+<div class="math">
+<p><img src="_images/math/73b201935df930cebd95931ad899502aa63e37e8.png" alt="\left\lvert \sum_j A_{ij} w_j - b_i \right\rvert
+&amp;&lt; \varepsilon_0
++ \varepsilon \sqrt{\left(\textstyle{\sum_j} A_{ij} w_j\right)^2
++ \left(\frac{m_i}{2}\right)^2 b_i}
+\text{ for all } i"/></p>
+</div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>A</strong> (<em>numpy.ndarray</em>) – Matrix <img class="math" src="_images/math/0043fe6507e9b1d112e07a2801e24927e267dd50.png" alt="A"/></li>
+<li><strong>W</strong> (<em>numpy.ndarray</em>) – Vector <img class="math" src="_images/math/f8651f880aba4234b06cb5b0f9fc6a225837cfc9.png" alt="\vec{w}"/></li>
+<li><strong>B</strong> (<em>numpy.ndarray</em>) – Vector <img class="math" src="_images/math/23c08a14cdfbba111469d60f630b75226878bf4f.png" alt="\vec{b},~b_i = c_\mathrm{s}^{m_i}"/></li>
+<li><strong>M</strong> (<em>numpy.ndarray</em>) – Vector <img class="math" src="_images/math/741ea5a5394a75795b0685fdcd6cf776dcc17932.png" alt="\vec{m}"/></li>
+<li><strong>RelTol</strong> (<em>float</em>) – Relative tolerance <img class="math" src="_images/math/3cb373a8030ad846aed7b1ee45bab27b13775928.png" alt="\varepsilon"/></li>
+<li><strong>AbsTol</strong> (<em>float</em>) – Absolute (numerical) tolerance <img class="math" src="_images/math/494812668086bcd93e6def9130d1ff6446f1886a.png" alt="\varepsilon_0"/></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">True if condition satisfied, False otherwise.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">bool</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="Functions.ComputeSubshell">
 <code class="descclassname">Functions.</code><code class="descname">ComputeSubshell</code><span class="sig-paren">(</span><em>Velocity</em>, <em>Group</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#ComputeSubshell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.ComputeSubshell" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the (sub)shell that is being spanned by Velocity wrt. Group.</p>
@@ -385,12 +419,8 @@ list: List compatible tensors</td>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
-<dt>List of velocity vectors that form the velocity shell spanned by</dt>
-<dd><p class="first last">Group</p>
-</dd>
-</dl>
-</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">List of velocity vectors that form the velocity shell spanned by
+Group</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
@@ -869,14 +899,21 @@ returns the output as a string.</p>
 
 <dl class="function">
 <dt id="Functions.TestSolution">
-<code class="descclassname">Functions.</code><code class="descname">TestSolution</code><span class="sig-paren">(</span><em>GrandTotalList</em>, <em>MaxTensorRank</em>, <em>SpacialDimension</em>, <em>ListOfTensorDimensions</em>, <em>Solution=None</em>, <em>atol=1e-08</em>, <em>rtol=1e-05</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#TestSolution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.TestSolution" title="Permalink to this definition">¶</a></dt>
-<dd><p>Test validity of the equation <img class="math" src="_images/math/e2cd577685a9087acd6958fca46e8aa8a10cfb18.png" alt="A.w = b"/> for given weights w and
-speed of sound <img class="math" src="_images/math/240341864a72a65cc5f3b89067c7d9879cc7c4e0.png" alt="c_s^2"/>.
-For this the numpy routine numpy.allclose() is used. A solution is deemed
-valid, if <img class="math" src="_images/math/4ef105ce81a71fd531b04274b932f3b8fc5ca9fb.png" alt="|A\vec{w} - b| \leq (\mathrm{atol} + \mathrm{rtol} |A \vec{w}|"/>).</p>
-<p>The weights can be given as a linear parametric equation
-<img class="math" src="_images/math/21a75148852a7963740b581f583838b85ae76818.png" alt="\vec{w} = \vec{w}_0 + \lambda_1 \vec{w}_1 + \lambda_2 \vec{w}_2 + \dots"/></p>
-<table class="docutils field-list" frame="void" rules="none">
+<code class="descclassname">Functions.</code><code class="descname">TestSolution</code><span class="sig-paren">(</span><em>GrandTotalList</em>, <em>MaxTensorRank</em>, <em>SpacialDimension</em>, <em>ListOfTensorDimensions</em>, <em>Solution=None</em>, <em>RelTol=1e-05</em>, <em>AbsTol=1e-14</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#TestSolution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.TestSolution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test validity of the equation <img class="math" src="_images/math/1c78a6d2d16fd4ca776a11f01ebc0a1739b3c264.png" alt="A\vec{w} = \vec{b}"/> for given
+weights w and speed of sound <img class="math" src="_images/math/240341864a72a65cc5f3b89067c7d9879cc7c4e0.png" alt="c_s^2"/>.
+A solution is deemed valid, if</p>
+<div class="math">
+<p><img src="_images/math/73b201935df930cebd95931ad899502aa63e37e8.png" alt="\left\lvert \sum_j A_{ij} w_j - b_i \right\rvert
+&amp;&lt; \varepsilon_0
++ \varepsilon \sqrt{\left(\textstyle{\sum_j} A_{ij} w_j\right)^2
++ \left(\frac{m_i}{2}\right)^2 b_i}
+\text{ for all } i"/></p>
+</div><p>The weights can be given as a linear parametric equation</p>
+<div class="math">
+<p><img src="_images/math/0d51ffa77cba9936342b13ca3238e1f9ad432609.png" alt="\vec{w} = \vec{w}_0 + \lambda_1 \vec{w}_1 + \lambda_2 \vec{w}_2 +
+\dots"/></p>
+</div><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
@@ -890,8 +927,8 @@ for tensors of rank <img class="math" src="_images/math/a5a537cb4a1dc5991aa69d48
 <li><strong>Solution</strong> (<em>list</em>) – Solution that is to be tested in the form
 <code class="docutils literal notranslate"><span class="pre">[CsSquared,</span> <span class="pre">[[w_00,</span> <span class="pre">w_01,...],</span> <span class="pre">[[w_10,</span> <span class="pre">w_11,</span> <span class="pre">...],</span> <span class="pre">...]</span></code>
 If None is given, the user is prompted to enter a solution by hand.</li>
-<li><strong>atol</strong> (<em>float</em>) – Absolute tolerance (parameter for numpy.allclose())</li>
-<li><strong>rtol</strong> (<em>float</em>) – Relative tolerance (parameter for numpy.allclose())</li>
+<li><strong>RelTol</strong> (<em>float</em>) – Relative tolerance <img class="math" src="_images/math/3cb373a8030ad846aed7b1ee45bab27b13775928.png" alt="\varepsilon"/></li>
+<li><strong>AbsTol</strong> (<em>float</em>) – Absolute (numerical) tolerance <img class="math" src="_images/math/494812668086bcd93e6def9130d1ff6446f1886a.png" alt="\varepsilon_0"/></li>
 </ul>
 </td>
 </tr>

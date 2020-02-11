@@ -129,7 +129,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        Question (str): String that is printed when function is called.</span>
-<span class="sd">        </span>
+
 <span class="sd">    Returns:</span>
 <span class="sd">        bool: True, if answer is in ``[&quot;YES&quot;, &quot;Y&quot;, &quot;yes&quot;, &quot;y&quot;, &quot;Yes&quot;, \CR]``</span>
 <span class="sd">        False, if answer is in ``[&quot;NO&quot;, &quot;N&quot;, &quot;no&quot;, &quot;n&quot;, &quot;No&quot;]``</span>
@@ -209,9 +209,9 @@
 <span class="sd">    deltas.</span>
 <span class="sd">    Hence tensor dimension is three. For each new (even) rank M we get another</span>
 <span class="sd">    delta with M indexes, plus all possible products of the lower-order delta</span>
-<span class="sd">    tensors So, for rank two we get ``[[2]]`` (1d) for rank four </span>
+<span class="sd">    tensors So, for rank two we get ``[[2]]`` (1d) for rank four</span>
 <span class="sd">    ``[[4], [2,2]]`` (2d) for rank six ``[[6], [4,2], [2,2,2]]`` (3d) for rank</span>
-<span class="sd">    eight ``[[8], [6,2], [4,4], [4,2,2], [2,2,2,2]]`` (5d) and so on. </span>
+<span class="sd">    eight ``[[8], [6,2], [4,4], [4,2,2], [2,2,2,2]]`` (5d) and so on.</span>
 <span class="sd">    The routine takes care of that &quot;and so on&quot;. This is most easily done in a</span>
 <span class="sd">    recursive fashion.</span>
 
@@ -709,7 +709,7 @@
     <span class="n">Exponent</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">Digits</span><span class="p">)</span> <span class="o">+</span> <span class="n">Exponent</span> <span class="o">-</span> <span class="mi">1</span>
     <span class="n">Mantissa</span> <span class="o">=</span> <span class="n">Float</span><span class="o">/</span><span class="mi">10</span><span class="o">**</span><span class="n">Exponent</span>
 
-    <span class="k">assert</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">Mantissa</span> <span class="o">*</span> <span class="mi">10</span><span class="o">**</span><span class="n">Exponent</span> <span class="o">-</span> <span class="n">Float</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">10e-14</span><span class="p">)</span>
+    <span class="k">assert</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">Mantissa</span> <span class="o">*</span> <span class="mi">10</span><span class="o">**</span><span class="n">Exponent</span> <span class="o">-</span> <span class="n">Float</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-12</span><span class="p">)</span>
     <span class="k">assert</span><span class="p">(</span><span class="mf">1.</span> <span class="o">&lt;=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Mantissa</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">10.</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="p">(</span><span class="n">Mantissa</span><span class="p">,</span> <span class="n">Exponent</span><span class="p">)</span></div>
@@ -957,15 +957,61 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">WTemp</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="CloseEnough"><a class="viewcode-back" href="../index.html#Functions.CloseEnough">[docs]</a><span class="k">def</span> <span class="nf">CloseEnough</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">RelTol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">AbsTol</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Test the condition</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        \\left\\lvert \\sum_j A_{ij} w_j - b_i \\right\\rvert</span>
+<span class="sd">        &amp;&lt; \\varepsilon_0</span>
+<span class="sd">        + \\varepsilon \\sqrt{\\left(\\textstyle{\\sum_j} A_{ij} w_j\\right)^2</span>
+<span class="sd">        + \\left(\\frac{m_i}{2}\\right)^2 b_i}</span>
+<span class="sd">        \\text{ for all } i</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        A (numpy.ndarray): Matrix :math:`A`</span>
+<span class="sd">        W (numpy.ndarray): Vector :math:`\\vec{w}`</span>
+<span class="sd">        B (numpy.ndarray): Vector :math:`\\vec{b},~b_i = c_\\mathrm{s}^{m_i}`</span>
+<span class="sd">        M (numpy.ndarray): Vector :math:`\\vec{m}`</span>
+<span class="sd">        RelTol (float): Relative tolerance :math:`\\varepsilon`</span>
+<span class="sd">        AbsTol (float): Absolute (numerical) tolerance :math:`\\varepsilon_0`</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bool: True if condition satisfied, False otherwise.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">assert</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">B</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">))</span>
+    <span class="k">assert</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">M</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">))</span>
+
+    <span class="n">AdW</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">W</span><span class="p">)</span>
+    <span class="n">Delta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">AdW</span> <span class="o">-</span> <span class="n">B</span><span class="p">)</span>
+    <span class="n">Thresh</span> <span class="o">=</span> <span class="n">AbsTol</span> \
+        <span class="o">+</span> <span class="n">RelTol</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">AdW</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="mf">0.5</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">M</span><span class="p">,</span><span class="n">B</span><span class="p">)))</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">Delta</span> <span class="o">&lt;</span> <span class="n">Thresh</span><span class="p">)</span></div>
+
+
 <div class="viewcode-block" id="TestSolution"><a class="viewcode-back" href="../index.html#Functions.TestSolution">[docs]</a><span class="k">def</span> <span class="nf">TestSolution</span><span class="p">(</span><span class="n">GrandTotalList</span><span class="p">,</span> <span class="n">MaxTensorRank</span><span class="p">,</span> <span class="n">SpacialDimension</span><span class="p">,</span>
-        <span class="n">ListOfTensorDimensions</span><span class="p">,</span> <span class="n">Solution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Test validity of the equation :math:`A.w = b` for given weights w and</span>
-<span class="sd">    speed of sound :math:`c_s^2`.</span>
-<span class="sd">    For this the numpy routine numpy.allclose() is used. A solution is deemed</span>
-<span class="sd">    valid, if :math:`|A\\vec{w} - b| \\leq (\mathrm{atol} + \mathrm{rtol} |A \\vec{w}|`).</span>
+        <span class="n">ListOfTensorDimensions</span><span class="p">,</span> <span class="n">Solution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">RelTol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">AbsTol</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Test validity of the equation :math:`A\\vec{w} = \\vec{b}` for given</span>
+<span class="sd">    weights w and speed of sound :math:`c_s^2`.</span>
+<span class="sd">    A solution is deemed valid, if</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        \\left\\lvert \\sum_j A_{ij} w_j - b_i \\right\\rvert</span>
+<span class="sd">        &amp;&lt; \\varepsilon_0</span>
+<span class="sd">        + \\varepsilon \\sqrt{\\left(\\textstyle{\\sum_j} A_{ij} w_j\\right)^2</span>
+<span class="sd">        + \\left(\\frac{m_i}{2}\\right)^2 b_i}</span>
+<span class="sd">        \\text{ for all } i</span>
 
 <span class="sd">    The weights can be given as a linear parametric equation</span>
-<span class="sd">    :math:`\\vec{w} = \\vec{w}_0 + \lambda_1 \\vec{w}_1 + \lambda_2 \\vec{w}_2 + \\dots`</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        \\vec{w} = \\vec{w}_0 + \lambda_1 \\vec{w}_1 + \lambda_2 \\vec{w}_2 +</span>
+<span class="sd">        \\dots</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        GrandTotalList (list): List of lists. The :math:`s`-th sublist</span>
@@ -977,8 +1023,8 @@
 <span class="sd">        Solution (list): Solution that is to be tested in the form</span>
 <span class="sd">            ``[CsSquared, [[w_00, w_01,...], [[w_10, w_11, ...], ...]``</span>
 <span class="sd">            If None is given, the user is prompted to enter a solution by hand.</span>
-<span class="sd">        atol (float): Absolute tolerance (parameter for numpy.allclose())</span>
-<span class="sd">        rtol (float): Relative tolerance (parameter for numpy.allclose())</span>
+<span class="sd">        RelTol (float): Relative tolerance :math:`\\varepsilon`</span>
+<span class="sd">        AbsTol (float): Absolute (numerical) tolerance :math:`\\varepsilon_0`</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        int: 0 if solution is valid, otherwise 1</span>
@@ -987,7 +1033,6 @@
 
     <span class="n">ShellSizes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">Shell</span><span class="p">)</span> <span class="k">for</span> <span class="n">Shell</span> <span class="ow">in</span> <span class="n">GrandTotalList</span><span class="p">])</span>
     <span class="n">TotalNumberOfShells</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">GrandTotalList</span><span class="p">)</span> <span class="c1"># NOT including zero shell!</span>
-
     <span class="c1"># Type solution by hand</span>
     <span class="k">if</span> <span class="n">Solution</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># Input speed of sound</span>
@@ -995,58 +1040,55 @@
         <span class="n">CsSquared</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">input</span><span class="p">(</span><span class="s2">&quot;c_s^2 = &quot;</span><span class="p">))</span>
         <span class="k">assert</span><span class="p">(</span><span class="n">CsSquared</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
 
-        <span class="n">W</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">ListOfWeightVectors</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="c1"># Input w_0</span>
         <span class="n">i_par</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">WTemp</span> <span class="o">=</span> <span class="n">EnterWeights</span><span class="p">(</span><span class="n">TotalNumberOfShells</span><span class="p">,</span> <span class="n">i_par</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">WTemp</span><span class="p">,</span> <span class="n">ShellSizes</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.</span> <span class="o">&gt;=</span> <span class="n">atol</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">WTemp</span><span class="p">,</span> <span class="n">ShellSizes</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.</span> <span class="o">&gt;</span> <span class="n">RelTol</span><span class="p">:</span>
             <span class="n">EchoError</span><span class="p">(</span><span class="s2">&quot;ERROR: Weights do not satisfy normalization condition!&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="mi">1</span>
-        <span class="n">W</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">WTemp</span><span class="p">)</span>
+        <span class="n">ListOfWeightVectors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">WTemp</span><span class="p">)</span>
 
         <span class="c1"># Input w_i, i &gt; 0</span>
         <span class="k">while</span> <span class="n">YesNo</span><span class="p">(</span><span class="s2">&quot;Do you want to add further solution vectors for a parametric solution? [Yn]&quot;</span><span class="p">):</span>
             <span class="n">i_par</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">WTemp</span> <span class="o">=</span> <span class="n">EnterWeights</span><span class="p">(</span><span class="n">TotalNumberOfShells</span><span class="p">,</span> <span class="n">i_par</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">WTemp</span><span class="p">,</span> <span class="n">ShellSizes</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">atol</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">WTemp</span><span class="p">,</span> <span class="n">ShellSizes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">RelTol</span><span class="p">:</span>
                 <span class="n">EchoError</span><span class="p">(</span><span class="s2">&quot;ERROR: Weights do not satisfy normalization condition!&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="mi">1</span>
-            <span class="n">W</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">WTemp</span><span class="p">)</span>
+            <span class="n">ListOfWeightVectors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">WTemp</span><span class="p">)</span>
 
-        <span class="n">Solution</span> <span class="o">=</span> <span class="p">[</span><span class="n">CsSquared</span><span class="p">,</span> <span class="n">W</span><span class="p">]</span>
+        <span class="n">Solution</span> <span class="o">=</span> <span class="p">[</span><span class="n">CsSquared</span><span class="p">,</span> <span class="n">ListOfWeightVectors</span><span class="p">]</span>
         <span class="n">Echo</span><span class="p">()</span>
 
     <span class="n">LeftHandSideMatrix</span> <span class="o">=</span> <span class="n">FillLeftHandSide</span><span class="p">(</span>
         <span class="n">SpacialDimension</span><span class="p">,</span> <span class="n">MaxTensorRank</span><span class="p">,</span> <span class="n">ListOfTensorDimensions</span><span class="p">,</span>
         <span class="n">TotalNumberOfShells</span><span class="p">,</span> <span class="n">GrandTotalList</span><span class="p">)</span>
 
-    <span class="n">CsSquared</span> <span class="o">=</span> <span class="n">Solution</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">W</span> <span class="o">=</span> <span class="n">Solution</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-    <span class="k">assert</span><span class="p">(</span><span class="n">CsSquared</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
-
     <span class="c1"># set A</span>
-    <span class="n">n_row</span> <span class="o">=</span> <span class="n">LeftHandSideMatrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">n_col</span> <span class="o">=</span> <span class="n">LeftHandSideMatrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-
+    <span class="n">NumberOfRows</span><span class="p">,</span> <span class="n">NumberOfColumns</span> <span class="o">=</span> <span class="n">LeftHandSideMatrix</span><span class="o">.</span><span class="n">shape</span>
     <span class="c1"># pad A so that normalization condition for the weights is included</span>
-    <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_row</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_col</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">NumberOfRows</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">NumberOfColumns</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
     <span class="n">A</span><span class="p">[</span><span class="mi">0</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">ShellSizes</span>
     <span class="n">A</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">LeftHandSideMatrix</span>
 
-    <span class="c1"># set B</span>
+    <span class="c1"># set B, M</span>
+    <span class="n">CsSquared</span> <span class="o">=</span> <span class="n">Solution</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">B</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.</span><span class="p">]</span>
+    <span class="n">M</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">MaxTensorRank</span> <span class="o">//</span> <span class="mi">2</span><span class="p">):</span>
         <span class="c1"># TensorRank = 2 * k + 2</span>
         <span class="n">LocalDimensionOfTensorSpace</span> <span class="o">=</span> <span class="n">ListOfTensorDimensions</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
 
-        <span class="c1"># j loop is loop over random vectors</span>
-        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">LocalDimensionOfTensorSpace</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">LocalDimensionOfTensorSpace</span><span class="p">):</span>
             <span class="n">B</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CsSquared</span><span class="o">**</span><span class="p">(</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">M</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
 
     <span class="n">B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">B</span><span class="p">)</span>
+    <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>
 
-    <span class="c1"># compare</span>
+    <span class="c1"># test</span>
     <span class="k">for</span> <span class="n">i_W</span><span class="p">,</span> <span class="n">W</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">Solution</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
         <span class="k">assert</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">W</span><span class="p">)</span> <span class="o">==</span> <span class="n">TotalNumberOfShells</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">i_W</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -1054,11 +1096,11 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">B</span><span class="p">))</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="n">A</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">W</span><span class="p">),</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">):</span>
-            <span class="n">EchoError</span><span class="p">(</span><span class="s2">&quot;The given solution does NOT solve the system.&quot;</span><span class="p">)</span>
-            <span class="n">EchoError</span><span class="p">(</span><span class="s2">&quot;Solution vector </span><span class="si">%d</span><span class="s2"> is not compatible.&quot;</span> <span class="o">%</span> <span class="n">i_W</span><span class="p">)</span>
-            <span class="n">EchoError</span><span class="p">(</span><span class="s1">&#39;A.w</span><span class="si">%s</span><span class="s1"> = &#39;</span> <span class="o">%</span> <span class="s1">&#39;-b&#39;</span> <span class="k">if</span> <span class="n">i_W</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-            <span class="n">EchoError</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">W</span><span class="p">)</span> <span class="o">-</span> <span class="n">C</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">CloseEnough</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">RelTol</span><span class="p">,</span> <span class="n">AbsTol</span><span class="p">):</span>
+            <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;The given solution does NOT solve the system.&quot;</span><span class="p">)</span>
+            <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;Solution vector </span><span class="si">%d</span><span class="s2"> is not compatible.&quot;</span> <span class="o">%</span> <span class="n">i_W</span><span class="p">)</span>
+            <span class="n">Echo</span><span class="p">(</span><span class="s1">&#39;A.w</span><span class="si">%s</span><span class="s1"> = &#39;</span> <span class="o">%</span> <span class="s1">&#39;-b&#39;</span> <span class="k">if</span> <span class="n">i_W</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">W</span><span class="p">)</span> <span class="o">-</span> <span class="n">C</span><span class="p">)</span>
             <span class="k">return</span> <span class="mi">1</span>
 
     <span class="n">Echo</span><span class="p">(</span><span class="s2">&quot;The given solution solves the system.&quot;</span><span class="p">)</span>
@@ -1071,7 +1113,7 @@
 <div class="viewcode-block" id="ToMatrix"><a class="viewcode-back" href="../index.html#Functions.ToMatrix">[docs]</a><span class="k">def</span> <span class="nf">ToMatrix</span><span class="p">(</span><span class="n">Array</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Convert an array of unit vector representations to proper matrix.</span>
 <span class="sd">    For example</span>
-<span class="sd">    ``[0,2,1]`` will be converted to </span>
+<span class="sd">    ``[0,2,1]`` will be converted to</span>
 <span class="sd">    ``[[1,0,0], [0,0,1], [0,1,0]]``.</span>
 
 <span class="sd">    Args:</span>
@@ -1187,7 +1229,7 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        list: List of velocity vectors that form the velocity shell spanned by</span>
-<span class="sd">            Group</span>
+<span class="sd">        Group</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
