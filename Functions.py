@@ -1013,38 +1013,26 @@ def TestSolution(GrandTotalList, MaxTensorRank, SpacialDimension,
         # Input w_0
         i_par = 0
         WTemp = EnterWeights(TotalNumberOfShells, i_par)
-        if np.dot(WTemp, ShellSizes) - 1. > RelTol:
-            EchoError("ERROR: Weights do not satisfy normalization condition!")
-            return 1
         ListOfWeightVectors.append(WTemp)
 
         # Input w_i, i > 0
         while YesNo("Do you want to add further solution vectors for a parametric solution? [Yn]"):
             i_par += 1
             WTemp = EnterWeights(TotalNumberOfShells, i_par)
-            if np.dot(WTemp, ShellSizes) > RelTol:
-                EchoError("ERROR: Weights do not satisfy normalization condition!")
-                return 1
             ListOfWeightVectors.append(WTemp)
 
         Solution = [CsSquared, ListOfWeightVectors]
         Echo()
 
-    LeftHandSideMatrix = FillLeftHandSide(
+    A = FillLeftHandSide(
         SpacialDimension, MaxTensorRank, ListOfTensorDimensions,
         TotalNumberOfShells, GrandTotalList)
 
-    # set A
-    NumberOfRows, NumberOfColumns = LeftHandSideMatrix.shape
-    # pad A so that normalization condition for the weights is included
-    A = np.zeros((NumberOfRows + 1, NumberOfColumns + 1))
-    A[0,:] = ShellSizes
-    A[1:,1:] = LeftHandSideMatrix
 
     # set B, M
     CsSquared = Solution[0]
-    B = [1.]
-    M = [0.]
+    B = []
+    M = []
     for k in range(MaxTensorRank // 2):
         # TensorRank = 2 * k + 2
         LocalDimensionOfTensorSpace = ListOfTensorDimensions[k]
@@ -1060,20 +1048,26 @@ def TestSolution(GrandTotalList, MaxTensorRank, SpacialDimension,
     for i_W, W in enumerate(Solution[1]):
         assert(len(W) == TotalNumberOfShells + 1)
         if i_W == 0:
+            CNorm = 1.
             C = B
         else:
+            CNorm = 0.
             C = np.zeros(len(B))
 
-        if not CloseEnough(A, W, C, M, RelTol, AbsTol):
-            Echo("The given solution does NOT solve the system.")
-            Echo("Solution vector %d is not compatible." % i_W)
-            Echo('A.w%s = ' % '-b' if i_W == 0 else '')
-            print(A.dot(W) - C)
+        # first, test normalization condition
+        if abs(ShellSizes.dot(W) - CNorm) >= RelTol:
+            EchoError()
+            EchoError("The weights w_%d do not satisfy normalization condition!" % i_W)
+            return 1
+        # test A.w == b
+        if not CloseEnough(A, W[1:], C, M, RelTol, AbsTol):
+            EchoError()
+            EchoError("The given solution does NOT solve the system, solution vector w_%d is not compatible." % i_W)
+            EchoError('A.w_%d%s = ' % (i_W, '-b' if i_W == 0 else ''))
+            EchoError(str(A.dot(W[1:]) - C))
             return 1
 
     Echo("The given solution solves the system.")
-    Echo('A.w - b = ')
-    print(A.dot(W) - C)
     return 0
 
 
