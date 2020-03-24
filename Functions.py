@@ -925,14 +925,13 @@ def EnterWeights(TotalNumberOfShells, i_par=0):
     return np.array(WTemp)
 
 
-def CloseEnough(A, W, B, M, RelTol=1e-5, AbsTol=1e-14):
+def CloseEnough(A, W, B, M, RelTol=1e-5):
     """Test the condition
 
     .. math::
 
-        \\left\\lvert \\sum_j A_{ij} w_j - b_i \\right\\rvert
-        &< \\varepsilon_0
-        + \\varepsilon \\sqrt{\\left(\\textstyle{\\sum_j} A_{ij} w_j\\right)^2
+        \\left\\lvert \\sum_j A_{ij} w_j - b_i \\right\\rvert &<
+        \\varepsilon \\sqrt{\\textstyle{\\sum_j} \\left(A_{ij} w_j\\right)^2
         + \\left(\\frac{m_i}{2}\\right)^2 b_i}
         \\text{ for all } i
 
@@ -942,7 +941,6 @@ def CloseEnough(A, W, B, M, RelTol=1e-5, AbsTol=1e-14):
         B (numpy.ndarray): Vector :math:`\\vec{b},~b_i = c_\\mathrm{s}^{m_i}`
         M (numpy.ndarray): Vector :math:`\\vec{m}`
         RelTol (float): Relative tolerance :math:`\\varepsilon`
-        AbsTol (float): Absolute (numerical) tolerance :math:`\\varepsilon_0`
 
     Returns:
         bool: True if condition satisfied, False otherwise.
@@ -952,16 +950,16 @@ def CloseEnough(A, W, B, M, RelTol=1e-5, AbsTol=1e-14):
     assert(np.all(B >= 0))
     assert(np.all(M >= 0))
 
-    AdW = A.dot(W)
-    Delta = np.abs(AdW - B)
-    Thresh = AbsTol \
-        + RelTol * np.sqrt(np.square(AdW) + np.square(0.5*np.multiply(M,B)))
+    Delta = np.abs(A.dot(W) - B)
+    Sum = np.array([AbsSquared(np.multiply(A_i, W)) for A_i in A])
+
+    Thresh = RelTol * np.sqrt(Sum + np.square(0.5*np.multiply(M,B)))
 
     return np.all(Delta < Thresh)
 
 
 def TestSolution(GrandTotalList, MaxTensorRank, SpacialDimension,
-        ListOfTensorDimensions, Solution=None, RelTol=1e-5, AbsTol=1e-14):
+        ListOfTensorDimensions, Solution=None, RelTol=1e-5):
     """Test validity of the equation :math:`A\\vec{w} = \\vec{b}` for given
     weights w and speed of sound :math:`c_s^2`.
     A solution is deemed valid, if
@@ -992,7 +990,6 @@ def TestSolution(GrandTotalList, MaxTensorRank, SpacialDimension,
             ``[CsSquared, [[w_00, w_01,...], [[w_10, w_11, ...], ...]``
             If None is given, the user is prompted to enter a solution by hand.
         RelTol (float): Relative tolerance :math:`\\varepsilon`
-        AbsTol (float): Absolute (numerical) tolerance :math:`\\varepsilon_0`
 
     Returns:
         int: 0 if solution is valid, otherwise 1
@@ -1060,7 +1057,7 @@ def TestSolution(GrandTotalList, MaxTensorRank, SpacialDimension,
             EchoError("The weights w_%d do not satisfy normalization condition!" % i_W)
             return 1
         # test A.w == b
-        if not CloseEnough(A, W[1:], C, M, RelTol, AbsTol):
+        if not CloseEnough(A, W[1:], C, M, RelTol):
             EchoError()
             EchoError("The given solution does NOT solve the system, solution vector w_%d is not compatible." % i_W)
             EchoError('A.w_%d%s = ' % (i_W, '-b' if i_W == 0 else ''))
