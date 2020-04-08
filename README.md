@@ -12,7 +12,8 @@ Tedious tasks like the construction of velocity shells from the velocity modulus
 
 Apart from being useful for researchers and practitioners, the script may perhaps also be used in a classroom setting.
 
-A detailed description of the underlying mathematical theory is given in the paper "Semi-automatic construction of Lattice Boltzmann models" by Dominic Spiller and Burkhard Duenweg, see http://arxiv.org/abs/2004.03509 .
+A detailed description of the underlying mathematical theory, together with illustrative examples, is given in the
+paper "Semi-automatic construction of Lattice Boltzmann models" by Dominic Spiller and Burkhard Duenweg, see http://arxiv.org/abs/2004.03509 (accepted for publication at Physical Review E on April 6, 2020).
 
 More extensive documentation can be found at https://bduenweg.github.io/Lattice-Boltzmann-weights/ .
 
