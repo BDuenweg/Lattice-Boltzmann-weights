@@ -1,17 +1,18 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
     <title>Welcome to the LBweights documentation! &#8212; LBweights  documentation</title>
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
    
@@ -30,7 +31,7 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="welcome-to-the-lbweights-documentation">
+  <section id="welcome-to-the-lbweights-documentation">
 <h1>Welcome to the LBweights documentation!<a class="headerlink" href="#welcome-to-the-lbweights-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
@@ -39,46 +40,18 @@
 <li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
 <li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
 </ul>
-</div>
-<div class="section" id="lattice-boltzmann-weights">
+</section>
+<section id="lattice-boltzmann-weights">
 <h1>Lattice-Boltzmann-weights<a class="headerlink" href="#lattice-boltzmann-weights" title="Permalink to this headline">¶</a></h1>
-<p>“LBweights.py” is a Python script that calculates the weights of the
-(user-supplied) shells of a Lattice Boltzmann model on a simple cubic lattice,
-based upon numerically solving the Maxwell-Boltzmann constraint (MBC)
-equations. The script supports arbitrary spacial dimensions and arbitrary
-tensor ranks up to which the MBCs must hold. The script requires a Python
-installation (version 3.5 or 2.7) as well as NumPy. It assumes that the speed
-of sound is a free parameter and hence needs more shells than a model whose
-speed of sound takes on a definite value that is required for consistency. The
-output is typically given in the form: weights as a function of sound speed.
-There are cases where the supplied set of velocities does not admit any
-solution; in this case the script aborts. There are also cases where it admits
-infinitely many solutions; in this case an additional script “Continue.py” is
-used, which builds upon data that the main script stores on file.</p>
-<p>In case of a unique solution, the script also calculates the interval(s) of
-sound speed for which all the weights are positive. At the borders of these
-intervals, at least one of the weights is zero, such that the corresponding
-shell may be discarded and one obtains a “reduced model”. In this way, the
-script is able to reproduce well-known models like D2Q9, D3Q19, D3Q15, etc.,
-but can also easily find higher-order models with significantly more speeds.</p>
-<p>For Continue.py, the user has to supply a well-defined value of the sound speed
-(or an interval plus step size for scanning several values). Moreover, it
-requires the specification of a shell (or of a set of shells) whose weight (or
-sum of weights) is to be minimized. Continue.py then finds an optimal solution
-to the thus-specified linear programming problem. Continue.py therefore
-requires the package cvxpy, see <a class="reference external" href="http://www.cvxpy.org/">http://www.cvxpy.org/</a> .</p>
-<p>A significant part of the code is not in the main scripts but rather in a
-collection of functions in “Functions.py”, which must be available to
-“LBweights.py” and “Continue.py”.</p>
-<p>Tedious tasks like the construction of velocity shells from the velocity
-modulus are done by the script.</p>
-<p>Apart from being useful for researchers and practitioners, the script may
-perhaps also be used in a classroom setting.</p>
-<p>A detailed description of the underlying mathematical theory is given in the
-paper “Semi-automatic construction of Lattice Boltzmann models” by Dominic
-Spiller and Burkhard Duenweg. A link to that paper will be given as soon as it
-is published.</p>
-<div class="section" id="installation">
+<p>“LBweights.py” is a Python script that calculates the weights of the (user-supplied) shells of a Lattice Boltzmann model on a simple cubic lattice, based upon numerically solving the Maxwell-Boltzmann constraint (MBC) equations. The script supports arbitrary spacial dimensions and arbitrary tensor ranks up to which the MBCs must hold. The script requires a Python installation (version 3.5 or 2.7) as well as NumPy. It assumes that the speed of sound is a free parameter and hence needs more shells than a model whose speed of sound takes on a definite value that is required for consistency. The output is typically given in the form: weights as a function of sound speed. There are cases where the supplied set of velocities does not admit any solution; in this case the script aborts. There are also cases where it admits infinitely many solutions; in this case an additional script “Continue.py” is used, which builds upon data that the main script stores on file.</p>
+<p>In case of a unique solution, the script also calculates the interval(s) of sound speed for which all the weights are positive. At the borders of these intervals, at least one of the weights is zero, such that the corresponding shell may be discarded and one obtains a “reduced model”. In this way, the script is able to reproduce well-known models like D2Q9, D3Q19, D3Q15, etc., but can also easily find higher-order models with significantly more speeds.</p>
+<p>For Continue.py, the user has to supply a well-defined value of the sound speed (or an interval plus step size for scanning several values). Moreover, it requires the specification of a shell (or of a set of shells) whose weight (or sum of weights) is to be minimized. Continue.py then finds an optimal solution to the thus-specified linear programming problem. Continue.py therefore requires the package cvxpy, see <a class="reference external" href="http://www.cvxpy.org/">http://www.cvxpy.org/</a> .</p>
+<p>A significant part of the code is not in the main scripts but rather in a collection of functions in “Functions.py”, which must be available to “LBweights.py” and “Continue.py”.</p>
+<p>Tedious tasks like the construction of velocity shells from the velocity modulus are done by the script.</p>
+<p>Apart from being useful for researchers and practitioners, the script may perhaps also be used in a classroom setting.</p>
+<p>A detailed description of the underlying mathematical theory, together with illustrative examples, is given in the
+paper “Semi-automatic construction of Lattice Boltzmann models” by Dominic Spiller and Burkhard Duenweg, see <a class="reference external" href="http://arxiv.org/abs/2004.03509">http://arxiv.org/abs/2004.03509</a> (original at Physical Review E, <a class="reference external" href="https://journals.aps.org/pre/abstract/10.1103/PhysRevE.101.043310">https://journals.aps.org/pre/abstract/10.1103/PhysRevE.101.043310</a> / open access).</p>
+<section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/BDuenweg/Lattice-Boltzmann-weights.git
 $ virtualenv venv
@@ -87,13 +60,13 @@ $ cd Lattice-Boltzmann-weights
 $ pip install -r requirements.txt
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="lbweights-py">
+</section>
+</section>
+<section id="lbweights-py">
 <h1>LBweights.py<a class="headerlink" href="#lbweights-py" title="Permalink to this headline">¶</a></h1>
 <p>Calculation of the weights of an LB model. You can either supply the input
 data interactively or by the following command line arguments:</p>
-<div class="section" id="usage">
+<section id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>LBweights.py [-h] [-d D] [-m M] [-c C [C ...]] [-s S]
                     [-y] [--test] [--quiet] [--write-latex]
@@ -137,9 +110,9 @@ existence</p></li>
 </ul>
 </dd>
 </dl>
-<dl class="function">
-<dt id="LBweights.Analysis">
-<code class="sig-prename descclassname">LBweights.</code><code class="sig-name descname">Analysis</code><span class="sig-paren">(</span><em class="sig-param">SpacialDimension</em>, <em class="sig-param">MaxTensorRank</em>, <em class="sig-param">ListOfTensorDimensions</em>, <em class="sig-param">GrandTotalList</em>, <em class="sig-param">Arguments</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LBweights.html#Analysis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#LBweights.Analysis" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="LBweights.Analysis">
+<span class="sig-prename descclassname"><span class="pre">LBweights.</span></span><span class="sig-name descname"><span class="pre">Analysis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">SpacialDimension</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MaxTensorRank</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ListOfTensorDimensions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">GrandTotalList</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Arguments</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LBweights.html#Analysis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LBweights.Analysis" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs the analysis for a given set of parameters</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -174,9 +147,9 @@ valid range of existence</p></li>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="LBweights.GetInputData">
-<code class="sig-prename descclassname">LBweights.</code><code class="sig-name descname">GetInputData</code><span class="sig-paren">(</span><em class="sig-param">Arguments=None</em>, <em class="sig-param">ListOfThrowawayStrings=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LBweights.html#GetInputData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#LBweights.GetInputData" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="LBweights.GetInputData">
+<span class="sig-prename descclassname"><span class="pre">LBweights.</span></span><span class="sig-name descname"><span class="pre">GetInputData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Arguments</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ListOfThrowawayStrings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/LBweights.html#GetInputData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#LBweights.GetInputData" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse command line arguments. You can optionally give a list with the
 subshells that you want to discard.</p>
 <dl class="field-list simple">
@@ -200,16 +173,16 @@ script that does not rely on user input.</p></li>
 </dl>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="continue-py">
+</section>
+</section>
+<section id="continue-py">
 <h1>Continue.py<a class="headerlink" href="#continue-py" title="Permalink to this headline">¶</a></h1>
 <p>Find optimal weights for an underdetermined problem. This requires the file
 <code class="docutils literal notranslate"><span class="pre">data.npz</span></code> to be present in the directory that can be written by
 <code class="docutils literal notranslate"><span class="pre">LBweights.py</span></code> if an underdetermined problem is encountered.
 You can either supply the input data interactively or by the following command
 line arguments:</p>
-<div class="section" id="id1">
+<section id="id1">
 <h2>Usage<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Continue.py [-h] [-c C [C ...]] [-m M [M ...]]
 
@@ -233,9 +206,9 @@ optional arguments:
 </ul>
 </dd>
 </dl>
-<dl class="function">
-<dt id="Continue.ParseArguments">
-<code class="sig-prename descclassname">Continue.</code><code class="sig-name descname">ParseArguments</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Continue.html#ParseArguments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Continue.ParseArguments" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Continue.ParseArguments">
+<span class="sig-prename descclassname"><span class="pre">Continue.</span></span><span class="sig-name descname"><span class="pre">ParseArguments</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Continue.html#ParseArguments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Continue.ParseArguments" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function to parse command line options.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -247,9 +220,9 @@ optional arguments:
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Continue.Solve">
-<code class="sig-prename descclassname">Continue.</code><code class="sig-name descname">Solve</code><span class="sig-paren">(</span><em class="sig-param">V</em>, <em class="sig-param">ReducedRhs</em>, <em class="sig-param">NumberOfRows</em>, <em class="sig-param">ShellSizes</em>, <em class="sig-param">CsSquared</em>, <em class="sig-param">MinimizeWeights</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Continue.html#Solve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Continue.Solve" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Continue.Solve">
+<span class="sig-prename descclassname"><span class="pre">Continue.</span></span><span class="sig-name descname"><span class="pre">Solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">V</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ReducedRhs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NumberOfRows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ShellSizes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CsSquared</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MinimizeWeights</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Continue.html#Solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Continue.Solve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solve the minimization problem via convex optimization.
 See: <a class="reference external" href="https://www.cvxpy.org/">https://www.cvxpy.org/</a></p>
 <dl class="field-list simple">
@@ -279,14 +252,14 @@ minimized in the procedure</p></li>
 </dl>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="module-Functions">
+</section>
+</section>
+<section id="module-Functions">
 <span id="functions-py"></span><h1>Functions.py<a class="headerlink" href="#module-Functions" title="Permalink to this headline">¶</a></h1>
 <p>Collection of helper functions for LBweights.py and Continue.py</p>
-<dl class="attribute">
-<dt id="Functions.LINEWIDTH">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">LINEWIDTH</code><a class="headerlink" href="#Functions.LINEWIDTH" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Functions.LINEWIDTH">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">LINEWIDTH</span></span><a class="headerlink" href="#Functions.LINEWIDTH" title="Permalink to this definition">¶</a></dt>
 <dd><p>Line width for console output.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -295,15 +268,15 @@ minimized in the procedure</p></li>
 </dl>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="Functions.QUIET">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">QUIET</code><a class="headerlink" href="#Functions.QUIET" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Functions.QUIET">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">QUIET</span></span><a class="headerlink" href="#Functions.QUIET" title="Permalink to this definition">¶</a></dt>
 <dd><p>Flag to suppress standard output.</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.AbsSquared">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">AbsSquared</code><span class="sig-paren">(</span><em class="sig-param">Vector</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#AbsSquared"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.AbsSquared" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.AbsSquared">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">AbsSquared</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Vector</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#AbsSquared"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.AbsSquared" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the squared absolute value of numpy array.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -315,9 +288,9 @@ minimized in the procedure</p></li>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.AnalyzeTensorDimension">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">AnalyzeTensorDimension</code><span class="sig-paren">(</span><em class="sig-param">CurrentTensorRank</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#AnalyzeTensorDimension"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.AnalyzeTensorDimension" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.AnalyzeTensorDimension">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">AnalyzeTensorDimension</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">CurrentTensorRank</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#AnalyzeTensorDimension"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.AnalyzeTensorDimension" title="Permalink to this definition">¶</a></dt>
 <dd><p>Recursive generation of lists that specify what types of tensors of rank
 CurrentTensorRank are compatible with cubic invariance and also fully
 symmetric under index exchange. For rank 2, these are just multiples of the
@@ -348,9 +321,9 @@ list: List compatible tensors</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.CloseEnough">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">CloseEnough</code><span class="sig-paren">(</span><em class="sig-param">A</em>, <em class="sig-param">W</em>, <em class="sig-param">B</em>, <em class="sig-param">M</em>, <em class="sig-param">RelTol=1e-05</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#CloseEnough"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.CloseEnough" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.CloseEnough">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">CloseEnough</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">W</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">B</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RelTol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#CloseEnough"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.CloseEnough" title="Permalink to this definition">¶</a></dt>
 <dd><p>Test the condition</p>
 <div class="math">
 <p><img src="_images/math/cf427778d0b3cdc5c2c404d4d369284667e4a1be.png" alt="\left\lvert \sum_j A_{ij} w_j - b_i \right\rvert &amp;&lt;
@@ -376,9 +349,9 @@ list: List compatible tensors</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.ComputeSubshell">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">ComputeSubshell</code><span class="sig-paren">(</span><em class="sig-param">Velocity</em>, <em class="sig-param">Group</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#ComputeSubshell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.ComputeSubshell" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.ComputeSubshell">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">ComputeSubshell</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Velocity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Group</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#ComputeSubshell"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.ComputeSubshell" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the (sub)shell that is being spanned by Velocity wrt. Group.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -397,9 +370,9 @@ Group</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.Contains">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">Contains</code><span class="sig-paren">(</span><em class="sig-param">Array</em>, <em class="sig-param">List</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#Contains"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.Contains" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.Contains">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">Contains</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">List</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#Contains"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.Contains" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks whether given numpy array is contained in list. The all()
 function is defined on numpy arrays and evaluates True if all elements are
 True.</p>
@@ -419,9 +392,9 @@ True.</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.ContainsInSublist">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">ContainsInSublist</code><span class="sig-paren">(</span><em class="sig-param">Array</em>, <em class="sig-param">ListOfLists</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#ContainsInSublist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.ContainsInSublist" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.ContainsInSublist">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">ContainsInSublist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ListOfLists</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#ContainsInSublist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.ContainsInSublist" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks whether given numpy array is contained in a list of lists.
 The all() function is defined on numpy arrays and evaluates True if all
 elements are True.</p>
@@ -441,9 +414,9 @@ elements are True.</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.DoubleFactorial">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">DoubleFactorial</code><span class="sig-paren">(</span><em class="sig-param">Number</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#DoubleFactorial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.DoubleFactorial" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.DoubleFactorial">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">DoubleFactorial</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Number</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#DoubleFactorial"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.DoubleFactorial" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Implementation of the double factorial.</dt><dd><p><img class="math" src="_images/math/b94b5b72651727ae6229d0237b83445549b9d8f2.png" alt="n!! = n(n-2)(n-4)\dots"/></p>
 </dd>
@@ -461,9 +434,9 @@ elements are True.</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.Echo">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">Echo</code><span class="sig-paren">(</span><em class="sig-param">String='\n'</em>, <em class="sig-param">Linewidth=70</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#Echo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.Echo" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.Echo">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">Echo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">String</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'\n'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Linewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">70</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#Echo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.Echo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Formatted printing
 If QUIET is set (i.e. via command line option –quiet) this is suppressed.</p>
 <dl class="field-list simple">
@@ -479,9 +452,9 @@ If QUIET is set (i.e. via command line option –quiet) this is suppressed.</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.EchoError">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">EchoError</code><span class="sig-paren">(</span><em class="sig-param">String='\n'</em>, <em class="sig-param">Linewidth=70</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#EchoError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.EchoError" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.EchoError">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">EchoError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">String</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'\n'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Linewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">70</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#EchoError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.EchoError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Formatted printing
 Prints irregardless of value of QUIET</p>
 <dl class="field-list simple">
@@ -497,9 +470,9 @@ Prints irregardless of value of QUIET</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.EnterWeights">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">EnterWeights</code><span class="sig-paren">(</span><em class="sig-param">TotalNumberOfShells</em>, <em class="sig-param">i_par=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#EnterWeights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.EnterWeights" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.EnterWeights">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">EnterWeights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">TotalNumberOfShells</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i_par</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#EnterWeights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.EnterWeights" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gets vector of weights from user input</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -518,9 +491,9 @@ Prints irregardless of value of QUIET</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.EvaluateWeights">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">EvaluateWeights</code><span class="sig-paren">(</span><em class="sig-param">W0List</em>, <em class="sig-param">SolutionMatrix</em>, <em class="sig-param">CsSquared</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#EvaluateWeights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.EvaluateWeights" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.EvaluateWeights">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">EvaluateWeights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">W0List</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SolutionMatrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CsSquared</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#EvaluateWeights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.EvaluateWeights" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate numerical weights from their polynomial coefficients</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -539,9 +512,9 @@ Prints irregardless of value of QUIET</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.FillLeftHandSide">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">FillLeftHandSide</code><span class="sig-paren">(</span><em class="sig-param">SpacialDimension</em>, <em class="sig-param">MaxTensorRank</em>, <em class="sig-param">ListOfTensorDimensions</em>, <em class="sig-param">TotalNumberOfShells</em>, <em class="sig-param">GrandTotalList</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#FillLeftHandSide"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.FillLeftHandSide" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.FillLeftHandSide">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">FillLeftHandSide</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">SpacialDimension</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MaxTensorRank</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ListOfTensorDimensions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TotalNumberOfShells</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">GrandTotalList</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#FillLeftHandSide"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.FillLeftHandSide" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct the <img class="math" src="_images/math/eb6f7dc4f9140d5fef4cecff6cf4a3666f78f3c7.png" alt="R \times N_s"/> matrix <img class="math" src="_images/math/211284f68205c3e66773eaf026f32a0acdd3dfb3.png" alt="A"/></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -564,9 +537,9 @@ contains all velocity vectors of shell <img class="math" src="_images/math/106b0
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.FillRightHandSide">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">FillRightHandSide</code><span class="sig-paren">(</span><em class="sig-param">MaxTensorRank</em>, <em class="sig-param">ListOfTensorDimensions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#FillRightHandSide"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.FillRightHandSide" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.FillRightHandSide">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">FillRightHandSide</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">MaxTensorRank</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ListOfTensorDimensions</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#FillRightHandSide"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.FillRightHandSide" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct the matrix <img class="math" src="_images/math/852ffd51b239076a617206b02e71e172064e2c93.png" alt="D: D_{r\mu} = \delta_{m_r \mu}"/></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -585,9 +558,9 @@ for tensors of rank <img class="math" src="_images/math/1f5276042aa372366e59546d
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.FindRangeOfExistence">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">FindRangeOfExistence</code><span class="sig-paren">(</span><em class="sig-param">W0List</em>, <em class="sig-param">SolutionMatrix</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#FindRangeOfExistence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.FindRangeOfExistence" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.FindRangeOfExistence">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">FindRangeOfExistence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">W0List</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SolutionMatrix</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#FindRangeOfExistence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.FindRangeOfExistence" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make use of the function “roots” that needs the coefficients in reverse
 order, in order to find the roots of the weight polynomials. If inbetween
 two roots all weights are positive, add them to list CompressedRoots</p>
@@ -608,9 +581,9 @@ the speed of sound.</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.FindVelocities">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">FindVelocities</code><span class="sig-paren">(</span><em class="sig-param">SpacialDimension</em>, <em class="sig-param">SquaredVelocity</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#FindVelocities"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.FindVelocities" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.FindVelocities">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">FindVelocities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">SpacialDimension</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SquaredVelocity</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#FindVelocities"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.FindVelocities" title="Permalink to this definition">¶</a></dt>
 <dd><p>Scans the cubic lattice for lattice velocity with squared length
 SquaredVelocity</p>
 <dl class="field-list simple">
@@ -629,9 +602,9 @@ SquaredVelocity</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.Frexp10">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">Frexp10</code><span class="sig-paren">(</span><em class="sig-param">Float</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#Frexp10"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.Frexp10" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.Frexp10">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">Frexp10</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#Frexp10"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.Frexp10" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns exponent and mantissa in base 10</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -646,9 +619,9 @@ SquaredVelocity</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.GetGroup">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">GetGroup</code><span class="sig-paren">(</span><em class="sig-param">SpacialDimension</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#GetGroup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.GetGroup" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.GetGroup">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">GetGroup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">SpacialDimension</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#GetGroup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.GetGroup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the cubic group. Each transformation matrix in the group is made
 up of 2d unit vectors of type <img class="math" src="_images/math/bfe492734b025873d18bf89d0ac91e0d32dd8358.png" alt="(0\dots0,+-1,0\dots0)"/>.
 We will identify a vector with i-th component 1 and 0 elsewhere by the
@@ -670,9 +643,9 @@ In general there are <img class="math" src="_images/math/994240e3b461f41bcf4fee0
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.GetListOfSubshells">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">GetListOfSubshells</code><span class="sig-paren">(</span><em class="sig-param">Shell</em>, <em class="sig-param">Group</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#GetListOfSubshells"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.GetListOfSubshells" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.GetListOfSubshells">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">GetListOfSubshells</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Shell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Group</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#GetListOfSubshells"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.GetListOfSubshells" title="Permalink to this definition">¶</a></dt>
 <dd><p>Applies all group transformations to all velocities in shell and returns
 all distinct shells that result.</p>
 <dl class="field-list simple">
@@ -691,9 +664,9 @@ all distinct shells that result.</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.IndicatorFunction">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">IndicatorFunction</code><span class="sig-paren">(</span><em class="sig-param">W0List</em>, <em class="sig-param">SolutionMatrix</em>, <em class="sig-param">CsSquared</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#IndicatorFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.IndicatorFunction" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.IndicatorFunction">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">IndicatorFunction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">W0List</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SolutionMatrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">CsSquared</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#IndicatorFunction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.IndicatorFunction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tests, whether solution yields all positive weights.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -712,9 +685,9 @@ all distinct shells that result.</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.LatticeSum">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">LatticeSum</code><span class="sig-paren">(</span><em class="sig-param">RandomVector</em>, <em class="sig-param">ListOfVelocities</em>, <em class="sig-param">TensorRank</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#LatticeSum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.LatticeSum" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.LatticeSum">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">LatticeSum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">RandomVector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ListOfVelocities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TensorRank</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#LatticeSum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.LatticeSum" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the sum
 <img class="math" src="_images/math/f5b769ec2073a34fe538f3736388a75ddf847203.png" alt="A_{rs} = \frac{1}{(m_r-1)!!} \sum_{i \in s} (\vec{c}_i\cdot\vec{n}_r)^{m_r}"/></p>
 <p>for tensor rank <img class="math" src="_images/math/79a3d439d28652c547386f39b555d90d3aaf102d.png" alt="r"/> and shell <img class="math" src="_images/math/106b04b320e75010b1d8029e59244f234f75e6f9.png" alt="s"/>.</p>
@@ -735,9 +708,9 @@ all distinct shells that result.</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.MakeRandomVector">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">MakeRandomVector</code><span class="sig-paren">(</span><em class="sig-param">SpacialDimension</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#MakeRandomVector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.MakeRandomVector" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.MakeRandomVector">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">MakeRandomVector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">SpacialDimension</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#MakeRandomVector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.MakeRandomVector" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a random vector uniformly distributed on the unit sphere.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -753,9 +726,9 @@ space.</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.OutputRangeOfExistence">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">OutputRangeOfExistence</code><span class="sig-paren">(</span><em class="sig-param">CompressedRoots</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#OutputRangeOfExistence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.OutputRangeOfExistence" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.OutputRangeOfExistence">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">OutputRangeOfExistence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">CompressedRoots</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#OutputRangeOfExistence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.OutputRangeOfExistence" title="Permalink to this definition">¶</a></dt>
 <dd><p>Screen output of the intervals of the speed of sound that yield all
 positive weights.</p>
 <dl class="field-list simple">
@@ -772,9 +745,9 @@ the speed of sound.</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.ParseArguments">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">ParseArguments</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#ParseArguments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.ParseArguments" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.ParseArguments">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">ParseArguments</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#ParseArguments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.ParseArguments" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function to parse command line options.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -786,9 +759,9 @@ the speed of sound.</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.RatApprox">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">RatApprox</code><span class="sig-paren">(</span><em class="sig-param">x</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#RatApprox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.RatApprox" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.RatApprox">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">RatApprox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#RatApprox"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.RatApprox" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculates numerator and denominator for a floating point number x and
 returns the output as a string.</p>
 <dl class="field-list simple">
@@ -804,9 +777,9 @@ returns the output as a string.</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.TestSolution">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">TestSolution</code><span class="sig-paren">(</span><em class="sig-param">GrandTotalList</em>, <em class="sig-param">MaxTensorRank</em>, <em class="sig-param">SpacialDimension</em>, <em class="sig-param">ListOfTensorDimensions</em>, <em class="sig-param">Solution=None</em>, <em class="sig-param">RelTol=1e-05</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#TestSolution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.TestSolution" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.TestSolution">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">TestSolution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">GrandTotalList</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MaxTensorRank</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SpacialDimension</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ListOfTensorDimensions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Solution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RelTol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#TestSolution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.TestSolution" title="Permalink to this definition">¶</a></dt>
 <dd><p>Test validity of the equation <img class="math" src="_images/math/2fb1b334f42eb13db372ed7a05db19c80db77f24.png" alt="A\vec{w} = \vec{b}"/> for given
 weights w and speed of sound <img class="math" src="_images/math/b10e35c2723ef1b7b6a127e3851f39a312813e1d.png" alt="c_s^2"/>.
 A solution is deemed valid, if</p>
@@ -844,9 +817,9 @@ If None is given, the user is prompted to enter a solution by hand.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.ToMatrix">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">ToMatrix</code><span class="sig-paren">(</span><em class="sig-param">Array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#ToMatrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.ToMatrix" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.ToMatrix">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">ToMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#ToMatrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.ToMatrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert an array of unit vector representations to proper matrix.
 For example
 <code class="docutils literal notranslate"><span class="pre">[0,2,1]</span></code> will be converted to
@@ -864,9 +837,9 @@ For example
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.Type">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">Type</code><span class="sig-paren">(</span><em class="sig-param">Shell</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#Type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.Type" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.Type">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">Type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Shell</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#Type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.Type" title="Permalink to this definition">¶</a></dt>
 <dd><p>Method to determine typical velocity vector for Shell.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -881,9 +854,9 @@ For example
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.WriteLatexNumber">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">WriteLatexNumber</code><span class="sig-paren">(</span><em class="sig-param">Value</em>, <em class="sig-param">Outfile</em>, <em class="sig-param">Precision=8</em>, <em class="sig-param">Rational=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#WriteLatexNumber"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.WriteLatexNumber" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.WriteLatexNumber">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">WriteLatexNumber</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Outfile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Rational</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#WriteLatexNumber"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.WriteLatexNumber" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write Value to <code class="docutils literal notranslate"><span class="pre">Outfile</span></code> in a Latex compatible way</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -900,9 +873,9 @@ For example
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.WriteLatexTables">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">WriteLatexTables</code><span class="sig-paren">(</span><em class="sig-param">CompressedRoots</em>, <em class="sig-param">W0List</em>, <em class="sig-param">SolutionMatrix</em>, <em class="sig-param">GrandTotalList</em>, <em class="sig-param">MaxTensorRank</em>, <em class="sig-param">Precision=8</em>, <em class="sig-param">Rational=False</em>, <em class="sig-param">Filename='latex_tables.tex'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#WriteLatexTables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.WriteLatexTables" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.WriteLatexTables">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">WriteLatexTables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">CompressedRoots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">W0List</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">SolutionMatrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">GrandTotalList</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MaxTensorRank</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Rational</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'latex_tables.tex'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#WriteLatexTables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.WriteLatexTables" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write unique solution to a file in form of a latex table. This will
 append to any existing file.</p>
 <dl class="field-list simple">
@@ -925,9 +898,9 @@ contains all velocity vectors of shell <img class="math" src="_images/math/106b0
 </dl>
 </dd></dl>
 
-<dl class="function">
-<dt id="Functions.YesNo">
-<code class="sig-prename descclassname">Functions.</code><code class="sig-name descname">YesNo</code><span class="sig-paren">(</span><em class="sig-param">Question</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#YesNo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Functions.YesNo" title="Permalink to this definition">¶</a></dt>
+<dl class="py function">
+<dt class="sig sig-object py" id="Functions.YesNo">
+<span class="sig-prename descclassname"><span class="pre">Functions.</span></span><span class="sig-name descname"><span class="pre">YesNo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Question</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Functions.html#YesNo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Functions.YesNo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Ask for yes or no answer and return a Boolean.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -943,7 +916,7 @@ False, if answer is in <code class="docutils literal notranslate"><span class="p
 </dl>
 </dd></dl>
 
-</div>
+</section>
 
 
           </div>
@@ -996,7 +969,7 @@ False, if answer is in <code class="docutils literal notranslate"><span class="p
       &copy;2020, Burkhard Dünweg, Dominic Spiller.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.4.4</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
